@@ -1,0 +1,6 @@
+.DS_Store
+.dotnet/
+src/**/bin/
+src/**/obj/
+tests/**/bin/
+tests/**/obj/
