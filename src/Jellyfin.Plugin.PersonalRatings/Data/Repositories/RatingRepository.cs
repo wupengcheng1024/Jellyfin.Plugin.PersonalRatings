@@ -87,6 +87,61 @@ internal sealed class RatingRepository : IRatingRepository
         return rating ?? throw new InvalidOperationException("Failed to load rating after upsert.");
     }
 
+    public async Task<IReadOnlyList<UserItemRating>> UpsertScoresAsync(Guid userId, IReadOnlyList<Guid> itemIds, int score, CancellationToken cancellationToken)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string nowText = FormatDate(now);
+
+        await using SqliteConnection connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using SqliteTransaction transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (Guid itemId in itemIds)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO user_item_ratings (
+                    user_id,
+                    item_id,
+                    score,
+                    is_pending_delete,
+                    last_played_at,
+                    rated_at,
+                    updated_at,
+                    created_at
+                )
+                VALUES (
+                    @userId,
+                    @itemId,
+                    @score,
+                    0,
+                    NULL,
+                    @ratedAt,
+                    @updatedAt,
+                    @createdAt
+                )
+                ON CONFLICT(user_id, item_id) DO UPDATE SET
+                    score = excluded.score,
+                    rated_at = excluded.rated_at,
+                    updated_at = excluded.updated_at;
+                """;
+            command.Parameters.AddWithValue("@userId", userId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@itemId", itemId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@score", score);
+            command.Parameters.AddWithValue("@ratedAt", nowText);
+            command.Parameters.AddWithValue("@updatedAt", nowText);
+            command.Parameters.AddWithValue("@createdAt", nowText);
+
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return await GetManyAsync(userId, itemIds, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<UserItemRating> ClearScoreAsync(Guid userId, Guid itemId, CancellationToken cancellationToken)
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -131,6 +186,112 @@ internal sealed class RatingRepository : IRatingRepository
 
         UserItemRating? rating = await GetAsync(userId, itemId, cancellationToken).ConfigureAwait(false);
         return rating ?? throw new InvalidOperationException("Failed to load rating after clear.");
+    }
+
+    public async Task<IReadOnlyList<UserItemRating>> ClearScoresAsync(Guid userId, IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string nowText = FormatDate(now);
+
+        await using SqliteConnection connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using SqliteTransaction transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (Guid itemId in itemIds)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO user_item_ratings (
+                    user_id,
+                    item_id,
+                    score,
+                    is_pending_delete,
+                    last_played_at,
+                    rated_at,
+                    updated_at,
+                    created_at
+                )
+                VALUES (
+                    @userId,
+                    @itemId,
+                    0,
+                    0,
+                    NULL,
+                    NULL,
+                    @updatedAt,
+                    @createdAt
+                )
+                ON CONFLICT(user_id, item_id) DO UPDATE SET
+                    score = 0,
+                    rated_at = NULL,
+                    updated_at = excluded.updated_at;
+                """;
+            command.Parameters.AddWithValue("@userId", userId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@itemId", itemId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@updatedAt", nowText);
+            command.Parameters.AddWithValue("@createdAt", nowText);
+
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return await GetManyAsync(userId, itemIds, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<UserItemRating>> SetPendingDeleteAsync(Guid userId, IReadOnlyList<Guid> itemIds, bool isPendingDelete, CancellationToken cancellationToken)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string nowText = FormatDate(now);
+
+        await using SqliteConnection connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using SqliteTransaction transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (Guid itemId in itemIds)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO user_item_ratings (
+                    user_id,
+                    item_id,
+                    score,
+                    is_pending_delete,
+                    last_played_at,
+                    rated_at,
+                    updated_at,
+                    created_at
+                )
+                VALUES (
+                    @userId,
+                    @itemId,
+                    0,
+                    @isPendingDelete,
+                    NULL,
+                    NULL,
+                    @updatedAt,
+                    @createdAt
+                )
+                ON CONFLICT(user_id, item_id) DO UPDATE SET
+                    is_pending_delete = excluded.is_pending_delete,
+                    updated_at = excluded.updated_at;
+                """;
+            command.Parameters.AddWithValue("@userId", userId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@itemId", itemId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@isPendingDelete", isPendingDelete ? 1 : 0);
+            command.Parameters.AddWithValue("@updatedAt", nowText);
+            command.Parameters.AddWithValue("@createdAt", nowText);
+
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return await GetManyAsync(userId, itemIds, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<PagedQueryResult<UserItemRating>> QueryPageAsync(Guid userId, RatingQueryRequest request, CancellationToken cancellationToken)
@@ -224,15 +385,27 @@ internal sealed class RatingRepository : IRatingRepository
             parameters.Add(new SqliteParameter("@score", request.Score.Value));
         }
 
+        if (request.IsRated.HasValue)
+        {
+            builder.Append(request.IsRated.Value ? " AND score > 0" : " AND score = 0");
+        }
+
         if (request.IsPendingDelete.HasValue)
         {
             builder.Append(" AND is_pending_delete = @isPendingDelete");
             parameters.Add(new SqliteParameter("@isPendingDelete", request.IsPendingDelete.Value ? 1 : 0));
         }
 
-        if (request.IsPlayed.HasValue)
+        if (request.RatedAfterUtc.HasValue)
         {
-            builder.Append(request.IsPlayed.Value ? " AND last_played_at IS NOT NULL" : " AND last_played_at IS NULL");
+            builder.Append(" AND rated_at IS NOT NULL AND rated_at >= @ratedAfterUtc");
+            parameters.Add(new SqliteParameter("@ratedAfterUtc", FormatDate(request.RatedAfterUtc.Value)));
+        }
+
+        if (request.RatedBeforeUtc.HasValue)
+        {
+            builder.Append(" AND rated_at IS NOT NULL AND rated_at <= @ratedBeforeUtc");
+            parameters.Add(new SqliteParameter("@ratedBeforeUtc", FormatDate(request.RatedBeforeUtc.Value)));
         }
 
         return builder.ToString();
@@ -297,5 +470,41 @@ internal sealed class RatingRepository : IRatingRepository
     private static string FormatDate(DateTimeOffset value)
     {
         return value.ToString("O", CultureInfo.InvariantCulture);
+    }
+
+    private async Task<IReadOnlyList<UserItemRating>> GetManyAsync(Guid userId, IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken)
+    {
+        if (itemIds.Count == 0)
+        {
+            return Array.Empty<UserItemRating>();
+        }
+
+        List<UserItemRating> items = [];
+
+        await using SqliteConnection connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (Guid itemId in itemIds)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT id, user_id, item_id, score, is_pending_delete, last_played_at, rated_at, updated_at, created_at
+                FROM user_item_ratings
+                WHERE user_id = @userId AND item_id = @itemId
+                LIMIT 1;
+                """;
+            command.Parameters.AddWithValue("@userId", userId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@itemId", itemId.ToString("D", CultureInfo.InvariantCulture));
+
+            await using SqliteDataReader reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                items.Add(ReadRating(reader));
+            }
+        }
+
+        return items;
     }
 }

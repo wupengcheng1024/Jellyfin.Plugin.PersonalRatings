@@ -26,6 +26,11 @@ public sealed class RatingListItemResponse
     public DateTimeOffset? LastPlayedAt { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the item is played.
+    /// </summary>
+    public bool IsPlayed { get; set; }
+
+    /// <summary>
     /// Gets or sets the rating timestamp.
     /// </summary>
     public DateTimeOffset? RatedAt { get; set; }

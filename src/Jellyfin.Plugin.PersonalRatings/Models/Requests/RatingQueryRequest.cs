@@ -8,6 +8,11 @@ namespace Jellyfin.Plugin.PersonalRatings.Models.Requests;
 public sealed class RatingQueryRequest
 {
     /// <summary>
+    /// Gets or sets a value indicating whether only rated or unrated entries should be returned.
+    /// </summary>
+    public bool? IsRated { get; set; }
+
+    /// <summary>
     /// Gets or sets the exact score filter.
     /// </summary>
     public int? Score { get; set; }
@@ -36,6 +41,26 @@ public sealed class RatingQueryRequest
     /// Gets or sets the production year filter.
     /// </summary>
     public int? Year { get; set; }
+
+    /// <summary>
+    /// Gets or sets the minimum item creation timestamp filter in UTC.
+    /// </summary>
+    public DateTimeOffset? AddedAfterUtc { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum item creation timestamp filter in UTC.
+    /// </summary>
+    public DateTimeOffset? AddedBeforeUtc { get; set; }
+
+    /// <summary>
+    /// Gets or sets the minimum rating timestamp filter in UTC.
+    /// </summary>
+    public DateTimeOffset? RatedAfterUtc { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum rating timestamp filter in UTC.
+    /// </summary>
+    public DateTimeOffset? RatedBeforeUtc { get; set; }
 
     /// <summary>
     /// Gets or sets the keyword filter.

@@ -13,4 +13,12 @@ internal sealed class JellyfinItemMetadata
     public int? ProductionYear { get; set; }
 
     public DateTimeOffset? DateCreatedUtc { get; set; }
+
+    public IReadOnlyList<Guid> LibraryIds { get; set; } = Array.Empty<Guid>();
+
+    public IReadOnlyList<string> LibraryNames { get; set; } = Array.Empty<string>();
+
+    public bool IsPlayed { get; set; }
+
+    public DateTimeOffset? LastPlayedAt { get; set; }
 }

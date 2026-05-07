@@ -54,16 +54,16 @@ internal sealed class RatingService : IRatingService
     {
         ValidateQueryRequest(request);
 
-        if (request.LibraryIds.Count > 0)
-        {
-            _logger.LogWarning("LibraryIds filter was requested but is not applied in phase 1 because library ownership mapping still needs Jellyfin 10.10.7 verification.");
-        }
-
-        bool requiresMetadataFiltering = request.MediaTypes.Count > 0
+        bool requiresMetadataFiltering = request.IsPlayed.HasValue
+            || request.LibraryIds.Count > 0
+            || request.MediaTypes.Count > 0
             || request.Year.HasValue
+            || request.AddedAfterUtc.HasValue
+            || request.AddedBeforeUtc.HasValue
             || !string.IsNullOrWhiteSpace(request.Keyword);
+        bool requiresMetadataSorting = RequiresMetadataSorting(request.SortBy);
 
-        if (!requiresMetadataFiltering)
+        if (!requiresMetadataFiltering && !requiresMetadataSorting)
         {
             Data.PagedQueryResult<UserItemRating> pagedRows = await _ratingRepository.QueryPageAsync(userId, request, cancellationToken).ConfigureAwait(false);
             IReadOnlyList<RatingListItemResponse> mappedItems = await MapListItemsAsync(userId, pagedRows.Items, cancellationToken).ConfigureAwait(false);
@@ -80,10 +80,15 @@ internal sealed class RatingService : IRatingService
         IReadOnlyList<UserItemRating> allRows = await _ratingRepository.ListAsync(userId, request, cancellationToken).ConfigureAwait(false);
         List<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> combined = await ResolveMetadataAsync(userId, allRows, cancellationToken).ConfigureAwait(false);
 
-        IEnumerable<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> filtered = combined.Where(tuple => MatchesMetadataFilters(tuple.Metadata, request));
-        int totalCount = filtered.Count();
+        List<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> filtered = combined
+            .Where(tuple => MatchesCombinedFilters(tuple.Rating, tuple.Metadata, request))
+            .ToList();
 
-        List<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> paged = filtered
+        int totalCount = filtered.Count;
+
+        IEnumerable<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> ordered = SortCombined(filtered, request.SortBy, request.SortOrder);
+
+        List<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> paged = ordered
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
             .ToList();
@@ -101,6 +106,45 @@ internal sealed class RatingService : IRatingService
         };
     }
 
+    public async Task<BatchOperationResponse> BatchSetRatingAsync(Guid userId, IReadOnlyList<Guid> itemIds, int score, CancellationToken cancellationToken)
+    {
+        if (score < 1 || score > 5)
+        {
+            throw new ArgumentOutOfRangeException(nameof(score), "Score must be between 1 and 5.");
+        }
+
+        IReadOnlyList<Guid> normalizedItemIds = NormalizeItemIds(itemIds);
+        IReadOnlyList<JellyfinItemMetadata> metadata = await RequireMetadataAsync(normalizedItemIds, userId, cancellationToken).ConfigureAwait(false);
+        IReadOnlyList<UserItemRating> ratings = await _ratingRepository.UpsertScoresAsync(userId, normalizedItemIds, score, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation("Applied score {Score} to {Count} items for user {UserId}", score, ratings.Count, userId);
+        return BuildBatchResponse("setScore", normalizedItemIds.Count, ratings, metadata);
+    }
+
+    public async Task<BatchOperationResponse> BatchClearRatingAsync(Guid userId, IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<Guid> normalizedItemIds = NormalizeItemIds(itemIds);
+        IReadOnlyList<JellyfinItemMetadata> metadata = await RequireMetadataAsync(normalizedItemIds, userId, cancellationToken).ConfigureAwait(false);
+        IReadOnlyList<UserItemRating> ratings = await _ratingRepository.ClearScoresAsync(userId, normalizedItemIds, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation("Cleared scores for {Count} items for user {UserId}", ratings.Count, userId);
+        return BuildBatchResponse("clearScore", normalizedItemIds.Count, ratings, metadata);
+    }
+
+    public async Task<BatchOperationResponse> BatchSetPendingDeleteAsync(Guid userId, IReadOnlyList<Guid> itemIds, bool isPendingDelete, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<Guid> normalizedItemIds = NormalizeItemIds(itemIds);
+        IReadOnlyList<JellyfinItemMetadata> metadata = await RequireMetadataAsync(normalizedItemIds, userId, cancellationToken).ConfigureAwait(false);
+        IReadOnlyList<UserItemRating> ratings = await _ratingRepository.SetPendingDeleteAsync(userId, normalizedItemIds, isPendingDelete, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation(
+            "Set pending delete state {PendingDelete} for {Count} items for user {UserId}",
+            isPendingDelete,
+            ratings.Count,
+            userId);
+        return BuildBatchResponse(isPendingDelete ? "setPendingDelete" : "unsetPendingDelete", normalizedItemIds.Count, ratings, metadata);
+    }
+
     private static RatingListItemResponse MapListResponse(UserItemRating rating, JellyfinItemMetadata? metadata)
     {
         return new RatingListItemResponse
@@ -108,7 +152,8 @@ internal sealed class RatingService : IRatingService
             ItemId = rating.ItemId.ToString("D"),
             Score = rating.Score,
             IsPendingDelete = rating.IsPendingDelete,
-            LastPlayedAt = rating.LastPlayedAt,
+            LastPlayedAt = metadata?.LastPlayedAt ?? rating.LastPlayedAt,
+            IsPlayed = metadata?.IsPlayed ?? rating.LastPlayedAt.HasValue,
             RatedAt = rating.RatedAt,
             UpdatedAt = rating.UpdatedAt,
             CreatedAt = rating.CreatedAt,
@@ -126,7 +171,8 @@ internal sealed class RatingService : IRatingService
             ItemId = metadata.ItemId.ToString("D"),
             Score = rating?.Score ?? 0,
             IsPendingDelete = rating?.IsPendingDelete ?? false,
-            LastPlayedAt = rating?.LastPlayedAt,
+            LastPlayedAt = metadata.LastPlayedAt ?? rating?.LastPlayedAt,
+            IsPlayed = metadata.IsPlayed,
             RatedAt = rating?.RatedAt,
             UpdatedAt = rating?.UpdatedAt,
             CreatedAt = rating?.CreatedAt,
@@ -137,8 +183,24 @@ internal sealed class RatingService : IRatingService
         };
     }
 
-    private static bool MatchesMetadataFilters(JellyfinItemMetadata? metadata, RatingQueryRequest request)
+    private static bool MatchesCombinedFilters(UserItemRating rating, JellyfinItemMetadata? metadata, RatingQueryRequest request)
     {
+        if (request.IsPlayed.HasValue)
+        {
+            if (metadata is null || metadata.IsPlayed != request.IsPlayed.Value)
+            {
+                return false;
+            }
+        }
+
+        if (request.LibraryIds.Count > 0)
+        {
+            if (metadata is null || !MatchesLibraryFilters(metadata, request.LibraryIds))
+            {
+                return false;
+            }
+        }
+
         if (request.MediaTypes.Count > 0)
         {
             if (metadata is null)
@@ -161,6 +223,22 @@ internal sealed class RatingService : IRatingService
             return false;
         }
 
+        if (request.AddedAfterUtc.HasValue)
+        {
+            if (metadata?.DateCreatedUtc is null || metadata.DateCreatedUtc.Value < request.AddedAfterUtc.Value)
+            {
+                return false;
+            }
+        }
+
+        if (request.AddedBeforeUtc.HasValue)
+        {
+            if (metadata?.DateCreatedUtc is null || metadata.DateCreatedUtc.Value > request.AddedBeforeUtc.Value)
+            {
+                return false;
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             if (metadata is null || string.IsNullOrWhiteSpace(metadata.Name))
@@ -175,6 +253,99 @@ internal sealed class RatingService : IRatingService
         }
 
         return true;
+    }
+
+    private static bool MatchesLibraryFilters(JellyfinItemMetadata metadata, IReadOnlyList<string> libraryFilters)
+    {
+        foreach (string libraryFilter in libraryFilters)
+        {
+            if (Guid.TryParse(libraryFilter, out Guid libraryId))
+            {
+                if (metadata.LibraryIds.Contains(libraryId))
+                {
+                    return true;
+                }
+            }
+            else if (metadata.LibraryNames.Any(name => string.Equals(name, libraryFilter, StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool RequiresMetadataSorting(string? sortBy)
+    {
+        string normalized = NormalizeSortBy(sortBy);
+        return normalized is "name" or "itemname" or "year" or "productionyear" or "dateadded" or "addedat" or "lastplayedat";
+    }
+
+    private static string NormalizeSortBy(string? sortBy)
+    {
+        return sortBy?.Trim().Replace("_", string.Empty, StringComparison.Ordinal).ToLowerInvariant() ?? "updatedat";
+    }
+
+    private static IEnumerable<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> SortCombined(
+        IEnumerable<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> source,
+        string? sortBy,
+        string? sortOrder)
+    {
+        bool ascending = string.Equals(sortOrder, "asc", StringComparison.OrdinalIgnoreCase);
+        string normalized = NormalizeSortBy(sortBy);
+
+        if (normalized == "score")
+        {
+            return ascending
+                ? source.OrderBy(tuple => tuple.Rating.Score).ThenBy(tuple => tuple.Rating.Id)
+                : source.OrderByDescending(tuple => tuple.Rating.Score).ThenByDescending(tuple => tuple.Rating.Id);
+        }
+
+        if (normalized == "createdat")
+        {
+            return ascending
+                ? source.OrderBy(tuple => tuple.Rating.CreatedAt).ThenBy(tuple => tuple.Rating.Id)
+                : source.OrderByDescending(tuple => tuple.Rating.CreatedAt).ThenByDescending(tuple => tuple.Rating.Id);
+        }
+
+        if (normalized == "ratedat")
+        {
+            return ascending
+                ? source.OrderBy(tuple => tuple.Rating.RatedAt ?? DateTimeOffset.MinValue).ThenBy(tuple => tuple.Rating.Id)
+                : source.OrderByDescending(tuple => tuple.Rating.RatedAt ?? DateTimeOffset.MinValue).ThenByDescending(tuple => tuple.Rating.Id);
+        }
+
+        if (normalized == "lastplayedat")
+        {
+            return ascending
+                ? source.OrderBy(tuple => tuple.Metadata?.LastPlayedAt ?? tuple.Rating.LastPlayedAt ?? DateTimeOffset.MinValue).ThenBy(tuple => tuple.Rating.Id)
+                : source.OrderByDescending(tuple => tuple.Metadata?.LastPlayedAt ?? tuple.Rating.LastPlayedAt ?? DateTimeOffset.MinValue).ThenByDescending(tuple => tuple.Rating.Id);
+        }
+
+        if (normalized is "year" or "productionyear")
+        {
+            return ascending
+                ? source.OrderBy(tuple => tuple.Metadata?.ProductionYear ?? int.MinValue).ThenBy(tuple => tuple.Rating.Id)
+                : source.OrderByDescending(tuple => tuple.Metadata?.ProductionYear ?? int.MinValue).ThenByDescending(tuple => tuple.Rating.Id);
+        }
+
+        if (normalized is "dateadded" or "addedat")
+        {
+            return ascending
+                ? source.OrderBy(tuple => tuple.Metadata?.DateCreatedUtc ?? DateTimeOffset.MinValue).ThenBy(tuple => tuple.Rating.Id)
+                : source.OrderByDescending(tuple => tuple.Metadata?.DateCreatedUtc ?? DateTimeOffset.MinValue).ThenByDescending(tuple => tuple.Rating.Id);
+        }
+
+        if (normalized is "name" or "itemname")
+        {
+            return ascending
+                ? source.OrderBy(tuple => tuple.Metadata?.Name ?? string.Empty, StringComparer.OrdinalIgnoreCase).ThenBy(tuple => tuple.Rating.Id)
+                : source.OrderByDescending(tuple => tuple.Metadata?.Name ?? string.Empty, StringComparer.OrdinalIgnoreCase).ThenByDescending(tuple => tuple.Rating.Id);
+        }
+
+        return ascending
+            ? source.OrderBy(tuple => tuple.Rating.UpdatedAt).ThenBy(tuple => tuple.Rating.Id)
+            : source.OrderByDescending(tuple => tuple.Rating.UpdatedAt).ThenByDescending(tuple => tuple.Rating.Id);
     }
 
     private async Task<IReadOnlyList<RatingListItemResponse>> MapListItemsAsync(
@@ -197,6 +368,21 @@ internal sealed class RatingService : IRatingService
         return metadata;
     }
 
+    private async Task<IReadOnlyList<JellyfinItemMetadata>> RequireMetadataAsync(
+        IReadOnlyList<Guid> itemIds,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        List<JellyfinItemMetadata> items = [];
+        foreach (Guid itemId in itemIds)
+        {
+            JellyfinItemMetadata metadata = await RequireMetadataAsync(itemId, userId, cancellationToken).ConfigureAwait(false);
+            items.Add(metadata);
+        }
+
+        return items;
+    }
+
     private async Task<List<(UserItemRating Rating, JellyfinItemMetadata? Metadata)>> ResolveMetadataAsync(
         Guid userId,
         IReadOnlyList<UserItemRating> ratings,
@@ -217,11 +403,88 @@ internal sealed class RatingService : IRatingService
         return combined;
     }
 
+    private static IReadOnlyList<Guid> NormalizeItemIds(IReadOnlyList<Guid> itemIds)
+    {
+        List<Guid> normalized = [];
+        HashSet<Guid> seen = [];
+
+        foreach (Guid itemId in itemIds)
+        {
+            if (itemId == Guid.Empty)
+            {
+                continue;
+            }
+
+            if (seen.Add(itemId))
+            {
+                normalized.Add(itemId);
+            }
+        }
+
+        if (normalized.Count == 0)
+        {
+            throw new ArgumentException("At least one valid itemId is required.", nameof(itemIds));
+        }
+
+        return normalized;
+    }
+
+    private BatchOperationResponse BuildBatchResponse(
+        string operation,
+        int requestedCount,
+        IReadOnlyList<UserItemRating> ratings,
+        IReadOnlyList<JellyfinItemMetadata> metadata)
+    {
+        Dictionary<Guid, JellyfinItemMetadata> metadataById = metadata.ToDictionary(item => item.ItemId, item => item);
+        List<RatingResponse> items = [];
+
+        foreach (UserItemRating rating in ratings)
+        {
+            if (!metadataById.TryGetValue(rating.ItemId, out JellyfinItemMetadata? itemMetadata))
+            {
+                continue;
+            }
+
+            items.Add(MapSingleResponse(rating, itemMetadata));
+        }
+
+        return new BatchOperationResponse
+        {
+            Operation = operation,
+            RequestedCount = requestedCount,
+            AffectedCount = items.Count,
+            Items = items
+        };
+    }
+
     private void ValidateQueryRequest(RatingQueryRequest request)
     {
         if (request.Score.HasValue && (request.Score.Value < 0 || request.Score.Value > 5))
         {
             throw new ArgumentOutOfRangeException(nameof(request.Score), "Score filter must be between 0 and 5.");
+        }
+
+        if (request.IsRated.HasValue)
+        {
+            if (!request.IsRated.Value && request.Score.HasValue && request.Score.Value > 0)
+            {
+                throw new ArgumentException("score>0 cannot be combined with isRated=false.", nameof(request));
+            }
+
+            if (request.IsRated.Value && request.Score.HasValue && request.Score.Value == 0)
+            {
+                throw new ArgumentException("score=0 cannot be combined with isRated=true.", nameof(request));
+            }
+        }
+
+        if (request.AddedAfterUtc.HasValue && request.AddedBeforeUtc.HasValue && request.AddedAfterUtc.Value > request.AddedBeforeUtc.Value)
+        {
+            throw new ArgumentException("AddedAfterUtc cannot be later than AddedBeforeUtc.", nameof(request));
+        }
+
+        if (request.RatedAfterUtc.HasValue && request.RatedBeforeUtc.HasValue && request.RatedAfterUtc.Value > request.RatedBeforeUtc.Value)
+        {
+            throw new ArgumentException("RatedAfterUtc cannot be later than RatedBeforeUtc.", nameof(request));
         }
 
         request.PageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
