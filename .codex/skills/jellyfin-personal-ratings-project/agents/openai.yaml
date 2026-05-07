@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jellyfin Ratings 项目"
+  short_description: "用于范围校对、阶段拆分与任务路由"
+  default_prompt: "使用 $jellyfin-personal-ratings-project 在开始实现前先校对 Jellyfin Personal Ratings 项目的范围、阶段和硬约束。"

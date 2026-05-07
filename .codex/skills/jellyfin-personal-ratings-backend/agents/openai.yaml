@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jellyfin Ratings 后端"
+  short_description: "用于 Jellyfin Personal Ratings 后端插件开发"
+  default_prompt: "使用 $jellyfin-personal-ratings-backend 来实现、排查或审查 Jellyfin Personal Ratings 的 C# 后端插件改动。"

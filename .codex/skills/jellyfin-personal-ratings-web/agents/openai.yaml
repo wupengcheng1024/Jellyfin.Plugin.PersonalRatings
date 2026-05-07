@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jellyfin Ratings Web"
+  short_description: "用于 Jellyfin Personal Ratings Web 交互开发"
+  default_prompt: "使用 $jellyfin-personal-ratings-web 来实现、排查或审查 Jellyfin Personal Ratings 的 Web 端评分与管理页交互。"

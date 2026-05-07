@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jellyfin Ratings 评审"
+  short_description: "用于 Jellyfin Personal Ratings 评审与验收"
+  default_prompt: "使用 $jellyfin-personal-ratings-review 来评审 Jellyfin Personal Ratings 改动的风险、验收缺口与版本兼容性。"
