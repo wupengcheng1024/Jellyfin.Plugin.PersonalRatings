@@ -1,0 +1,246 @@
+.personalRatingsManagePage {
+    --pr-accent: #e58b2f;
+    --pr-accent-soft: rgba(229, 139, 47, 0.18);
+    --pr-surface: rgba(13, 18, 26, 0.82);
+    --pr-surface-soft: rgba(22, 30, 42, 0.72);
+    --pr-border: rgba(255, 255, 255, 0.08);
+    --pr-text-muted: rgba(255, 255, 255, 0.7);
+}
+
+.personalRatingsManagePage .content-primary {
+    display: grid;
+    gap: 18px;
+    padding-bottom: 28px;
+}
+
+.personalRatingsHero,
+.personalRatingsPanel {
+    background:
+        radial-gradient(circle at top left, rgba(229, 139, 47, 0.18), transparent 34%),
+        linear-gradient(160deg, var(--pr-surface), var(--pr-surface-soft));
+    border: 1px solid var(--pr-border);
+    border-radius: 22px;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
+}
+
+.personalRatingsHero {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 28px;
+}
+
+.personalRatingsEyebrow {
+    margin: 0 0 8px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--pr-text-muted);
+}
+
+.personalRatingsHero h1 {
+    margin: 0;
+    font-size: 34px;
+    line-height: 1.05;
+}
+
+.personalRatingsHeroText {
+    margin: 12px 0 0;
+    max-width: 720px;
+    line-height: 1.65;
+    color: var(--pr-text-muted);
+}
+
+.personalRatingsHeroActions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.personalRatingsPanel {
+    padding: 22px;
+}
+
+.personalRatingsPresetBar,
+.personalRatingsToolbar,
+.personalRatingsBatchActions,
+.personalRatingsFeedback,
+.personalRatingsPagination {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.personalRatingsPresetBar {
+    margin-bottom: 18px;
+}
+
+.personalRatingsPresetButton.is-active {
+    background: var(--pr-accent-soft);
+    color: #fff;
+    border-color: rgba(229, 139, 47, 0.34);
+}
+
+.personalRatingsToolbar {
+    justify-content: space-between;
+}
+
+.personalRatingsToolbarGroup {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.personalRatingsField {
+    display: grid;
+    gap: 8px;
+    min-width: 180px;
+}
+
+.personalRatingsField span {
+    font-size: 12px;
+    color: var(--pr-text-muted);
+    letter-spacing: 0.04em;
+}
+
+.personalRatingsCompactField {
+    min-width: 150px;
+}
+
+.personalRatingsBatchBar {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.personalRatingsBatchHint,
+.personalRatingsSummaryText,
+.personalRatingsStatusText,
+.personalRatingsPageText {
+    color: var(--pr-text-muted);
+}
+
+.personalRatingsStatusText.is-error {
+    color: #ff9e8d;
+}
+
+.personalRatingsStatusText.is-success {
+    color: #9ae1b2;
+}
+
+.personalRatingsStatusText.is-loading {
+    color: #f0c28b;
+}
+
+.personalRatingsTableWrap {
+    margin-top: 18px;
+    overflow-x: auto;
+}
+
+.personalRatingsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.personalRatingsTable th,
+.personalRatingsTable td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--pr-border);
+    vertical-align: top;
+}
+
+.personalRatingsTable th {
+    text-align: left;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--pr-text-muted);
+}
+
+.personalRatingsCheckboxColumn {
+    width: 44px;
+}
+
+.personalRatingsItemName {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.personalRatingsItemMeta {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--pr-text-muted);
+}
+
+.personalRatingsTagList {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.personalRatingsTag,
+.personalRatingsScoreBadge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.personalRatingsScoreBadge.is-rated {
+    background: var(--pr-accent-soft);
+    color: #fff5ea;
+}
+
+.personalRatingsRowActions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.personalRatingsRowActions a,
+.personalRatingsRowActions button {
+    white-space: nowrap;
+}
+
+.personalRatingsEmptyState {
+    padding: 28px 12px;
+    text-align: center;
+    color: var(--pr-text-muted);
+}
+
+.personalRatingsPagination {
+    justify-content: space-between;
+    margin-top: 18px;
+}
+
+.personalRatingsManagePage.is-loading .personalRatingsRows {
+    opacity: 0.55;
+}
+
+@media (max-width: 900px) {
+    .personalRatingsHero,
+    .personalRatingsBatchBar,
+    .personalRatingsPagination {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .personalRatingsToolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .personalRatingsToolbarGroup,
+    .personalRatingsBatchActions {
+        align-items: stretch;
+    }
+}

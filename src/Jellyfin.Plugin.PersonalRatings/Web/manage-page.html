@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <title>我的评分库</title>
+</head>
+<body>
+    <div id="personalRatingsManagePage" data-role="page" class="page type-interior pluginConfigurationPage configPage personalRatingsManagePage" data-title="我的评分库" data-backbutton="true" data-require="emby-button,emby-input,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <section class="personalRatingsHero">
+                    <div>
+                        <p class="personalRatingsEyebrow">Jellyfin.PersonalRatings</p>
+                        <h1>我的评分库</h1>
+                        <p class="personalRatingsHeroText">先做后端稳态，再把个人评分的日常管理收口到一个页面里。这里支持预设视图、分页查询、多选和批量操作。</p>
+                    </div>
+                    <div class="personalRatingsHeroActions">
+                        <button is="emby-button" type="button" class="raised button-submit personalRatingsRefreshButton">
+                            <span>刷新列表</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="personalRatingsPanel">
+                    <div class="personalRatingsPresetBar">
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="ratedAll">全部已评分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score5">5分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score4">4分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score3">3分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score2">2分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score1">1分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="unrated">未评分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="pendingDelete">待删除</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="recent">最近评分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="playedUnrated">已播放未评分</button>
+                    </div>
+
+                    <form class="personalRatingsToolbar personalRatingsSearchForm">
+                        <div class="personalRatingsToolbarGroup">
+                            <label class="personalRatingsField">
+                                <span>关键词</span>
+                                <input is="emby-input" type="text" class="txtKeyword" placeholder="片名 / 剧名 / 条目名" />
+                            </label>
+                            <button is="emby-button" type="submit" class="raised button-submit">
+                                <span>查询</span>
+                            </button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsClearSearchButton">
+                                <span>清空</span>
+                            </button>
+                        </div>
+                        <div class="personalRatingsToolbarGroup">
+                            <label class="personalRatingsField personalRatingsCompactField">
+                                <span>排序</span>
+                                <select is="emby-select" class="selectSort">
+                                    <option value="updatedAt:desc">最近更新</option>
+                                    <option value="ratedAt:desc">最近评分</option>
+                                    <option value="name:asc">名称 A-Z</option>
+                                    <option value="year:desc">年份新到旧</option>
+                                    <option value="lastPlayedAt:desc">最近播放</option>
+                                </select>
+                            </label>
+                            <label class="personalRatingsField personalRatingsCompactField">
+                                <span>每页</span>
+                                <select is="emby-select" class="selectPageSize">
+                                    <option value="10">10</option>
+                                    <option value="25" selected="selected">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </label>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="personalRatingsPanel">
+                    <div class="personalRatingsBatchBar">
+                        <div>
+                            <strong class="selectedCountText">已选 0 项</strong>
+                            <div class="personalRatingsBatchHint">先勾选当前页条目，再执行批量改分、清分或待删除切换。</div>
+                        </div>
+                        <div class="personalRatingsBatchActions">
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="5">设为 5分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="4">设为 4分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="3">设为 3分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="2">设为 2分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="1">设为 1分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="clear">清除评分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="pendingOn">标记待删除</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="pendingOff">取消待删除</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="personalRatingsPanel">
+                    <div class="personalRatingsFeedback">
+                        <div class="personalRatingsSummaryText">正在准备列表...</div>
+                        <div class="personalRatingsStatusText" aria-live="polite"></div>
+                    </div>
+
+                    <div class="personalRatingsTableWrap">
+                        <table class="personalRatingsTable">
+                            <thead>
+                                <tr>
+                                    <th class="personalRatingsCheckboxColumn">
+                                        <input is="emby-checkbox" type="checkbox" class="checkSelectAll" />
+                                    </th>
+                                    <th>条目</th>
+                                    <th>评分</th>
+                                    <th>状态</th>
+                                    <th>最近评分</th>
+                                    <th>最近更新</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="personalRatingsRows"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="personalRatingsPagination">
+                        <button is="emby-button" type="button" class="button-flat personalRatingsPrevPageButton">
+                            <span>上一页</span>
+                        </button>
+                        <div class="personalRatingsPageText">第 1 页</div>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsNextPageButton">
+                            <span>下一页</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                var page = document.querySelector('.personalRatingsManagePage');
+                var stylesheetId = 'personalRatingsManagePageStylesheet';
+                var scriptId = 'personalRatingsManagePageScript';
+
+                if (!document.getElementById(stylesheetId)) {
+                    var stylesheet = document.createElement('link');
+                    stylesheet.id = stylesheetId;
+                    stylesheet.rel = 'stylesheet';
+                    stylesheet.href = '/Plugins/PersonalRatings/web/manage-page.css';
+                    document.head.appendChild(stylesheet);
+                }
+
+                function registerWhenReady() {
+                    if (window.PersonalRatingsManagePage && typeof window.PersonalRatingsManagePage.register === 'function') {
+                        window.PersonalRatingsManagePage.register(page);
+                    } else {
+                        window.setTimeout(registerWhenReady, 50);
+                    }
+                }
+
+                if (!document.getElementById(scriptId)) {
+                    var script = document.createElement('script');
+                    script.id = scriptId;
+                    script.src = '/Plugins/PersonalRatings/web/manage-page.js';
+                    script.onload = registerWhenReady;
+                    document.body.appendChild(script);
+                } else {
+                    registerWhenReady();
+                }
+            })();
+        </script>
+    </div>
+</body>
+</html>

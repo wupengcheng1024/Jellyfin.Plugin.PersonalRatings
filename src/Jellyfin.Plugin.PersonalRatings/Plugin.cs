@@ -41,10 +41,20 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         [
             new PluginPageInfo
             {
-                Name = Name,
+                Name = "PersonalRatingsConfigPage",
+                DisplayName = Name,
                 EmbeddedResourcePath = string.Format(
                     CultureInfo.InvariantCulture,
                     "{0}.Configuration.configPage.html",
+                    GetType().Namespace)
+            },
+            new PluginPageInfo
+            {
+                Name = "PersonalRatingsManagePage",
+                DisplayName = "我的评分库",
+                EmbeddedResourcePath = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}.Web.manage-page.html",
                     GetType().Namespace)
             }
         ];

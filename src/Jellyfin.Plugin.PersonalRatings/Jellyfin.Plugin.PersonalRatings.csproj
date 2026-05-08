@@ -24,7 +24,15 @@
 
   <ItemGroup>
     <None Remove="Configuration\configPage.html" />
+    <None Remove="Web\details-rating.js" />
+    <None Remove="Web\manage-page.css" />
+    <None Remove="Web\manage-page.html" />
+    <None Remove="Web\manage-page.js" />
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Web\details-rating.js" />
+    <EmbeddedResource Include="Web\manage-page.css" />
+    <EmbeddedResource Include="Web\manage-page.html" />
+    <EmbeddedResource Include="Web\manage-page.js" />
   </ItemGroup>
 
 </Project>

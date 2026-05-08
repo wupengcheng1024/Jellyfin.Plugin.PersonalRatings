@@ -1,14 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8" />
     <title>Jellyfin Personal Ratings</title>
 </head>
 <body>
-    <div style="padding: 24px; font-family: sans-serif;">
-        <h1>Jellyfin Personal Ratings</h1>
-        <p>This plugin is installed and the phase-1 backend scaffold is ready.</p>
-        <p>Configuration UI will be expanded in a later phase.</p>
+    <div id="personalRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage configPage" data-require="emby-button">
+        <div data-role="content">
+            <div class="content-primary" style="max-width: 860px;">
+                <h1>Jellyfin Personal Ratings</h1>
+                <p>当前插件已启用个人评分详情页注入和“我的评分库”页面。</p>
+                <p>这一阶段优先提供可运行的 Web MVP：详情页打分、清分、待删除切换，以及分页查询和批量改分入口。</p>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
+                    <button is="emby-button" type="button" class="raised button-submit" id="openManagePageButton">
+                        <span>打开我的评分库</span>
+                    </button>
+                    <button is="emby-button" type="button" class="button-flat" id="copyManageUrlButton">
+                        <span>复制页面路由</span>
+                    </button>
+                </div>
+                <div style="margin-top: 24px; opacity: 0.82; line-height: 1.6;">
+                    <p>推荐访问路由：</p>
+                    <code id="managePageUrlText">#/configurationpage?name=PersonalRatingsManagePage</code>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                var route = 'configurationpage?name=PersonalRatingsManagePage';
+
+                document.querySelector('#openManagePageButton').addEventListener('click', function () {
+                    if (window.Dashboard && typeof window.Dashboard.navigate === 'function') {
+                        window.Dashboard.navigate(route);
+                        return;
+                    }
+
+                    window.location.hash = '#/' + route;
+                });
+
+                document.querySelector('#copyManageUrlButton').addEventListener('click', function () {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText('#/' + route);
+                    }
+                });
+            })();
+        </script>
     </div>
 </body>
 </html>

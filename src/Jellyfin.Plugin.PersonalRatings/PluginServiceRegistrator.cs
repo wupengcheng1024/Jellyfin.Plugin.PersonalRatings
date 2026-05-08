@@ -1,6 +1,7 @@
 using Jellyfin.Plugin.PersonalRatings.Data;
 using Jellyfin.Plugin.PersonalRatings.Data.Repositories;
 using Jellyfin.Plugin.PersonalRatings.Services;
+using Jellyfin.Plugin.PersonalRatings.Web;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,5 +23,6 @@ public sealed class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddScoped<IRatingRepository, RatingRepository>();
         serviceCollection.AddScoped<IJellyfinItemResolver, JellyfinItemResolver>();
         serviceCollection.AddScoped<IRatingService, RatingService>();
+        serviceCollection.AddSingleton<Microsoft.AspNetCore.Hosting.IStartupFilter, PersonalRatingsWebStartupFilter>();
     }
 }
