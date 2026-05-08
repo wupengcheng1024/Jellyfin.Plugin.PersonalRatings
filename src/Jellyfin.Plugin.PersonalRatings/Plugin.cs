@@ -21,12 +21,18 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         : base(applicationPaths, xmlSerializer)
     {
         Instance = this;
+        WebAssetVersionToken = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
     /// Gets the current plugin instance.
     /// </summary>
     public static Plugin? Instance { get; private set; }
+
+    /// <summary>
+    /// Gets the cache-busting token used for plugin web assets during the current Jellyfin process lifetime.
+    /// </summary>
+    public string WebAssetVersionToken { get; }
 
     /// <inheritdoc />
     public override string Name => "Personal Ratings";

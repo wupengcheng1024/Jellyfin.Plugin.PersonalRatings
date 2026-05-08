@@ -19,7 +19,9 @@
     <PackageReference Include="Jellyfin.Model" Version="10.10.7">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11">
+      <ExcludeAssets>runtime;native</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -34,5 +36,9 @@
     <EmbeddedResource Include="Web\manage-page.html" />
     <EmbeddedResource Include="Web\manage-page.js" />
   </ItemGroup>
+
+  <Target Name="RemovePluginNativeRuntimeAssets" AfterTargets="Publish">
+    <RemoveDir Directories="$(PublishDir)runtimes" />
+  </Target>
 
 </Project>

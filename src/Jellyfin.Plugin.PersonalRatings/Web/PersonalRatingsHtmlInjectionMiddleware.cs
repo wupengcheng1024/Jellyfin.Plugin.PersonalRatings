@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -12,7 +14,6 @@ namespace Jellyfin.Plugin.PersonalRatings.Web;
 /// </summary>
 public sealed class PersonalRatingsHtmlInjectionMiddleware
 {
-    private const string ScriptTag = "<script defer src=\"/Plugins/PersonalRatings/web/details-rating.js\"></script>";
     private readonly ILogger<PersonalRatingsHtmlInjectionMiddleware> _logger;
     private readonly RequestDelegate _next;
 
@@ -58,11 +59,27 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
                 return;
             }
 
-            using StreamReader reader = new StreamReader(responseBuffer, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
-            string html = await reader.ReadToEndAsync(httpContext.RequestAborted).ConfigureAwait(false);
-            string updatedHtml = InjectScript(html);
+            string? contentEncoding = GetContentEncoding(httpContext.Response);
+            byte[] responseBytes = responseBuffer.ToArray();
+            string? html = await DecodeHtmlAsync(responseBytes, contentEncoding, httpContext.RequestAborted).ConfigureAwait(false);
+            if (html is null)
+            {
+                _logger.LogWarning(
+                    "Skipping personal ratings HTML injection for {Path} because response encoding {Encoding} is not supported.",
+                    httpContext.Request.Path,
+                    contentEncoding ?? "(none)");
 
-            byte[] encodedHtml = Encoding.UTF8.GetBytes(updatedHtml);
+                await originalBody.WriteAsync(responseBytes, httpContext.RequestAborted).ConfigureAwait(false);
+                return;
+            }
+
+            string updatedHtml = InjectScript(html, BuildScriptTag());
+            byte[] encodedHtml = await EncodeHtmlAsync(updatedHtml, contentEncoding, httpContext.RequestAborted).ConfigureAwait(false);
+
+            RemoveStaleStaticFileHeaders(httpContext.Response);
+            httpContext.Response.Headers.CacheControl = "no-store, no-cache, max-age=0";
+            httpContext.Response.Headers.Pragma = "no-cache";
+            httpContext.Response.Headers.Expires = "0";
             httpContext.Response.ContentLength = encodedHtml.Length;
             httpContext.Response.Body = originalBody;
             await httpContext.Response.Body.WriteAsync(encodedHtml, httpContext.RequestAborted).ConfigureAwait(false);
@@ -110,19 +127,14 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
             return false;
         }
 
-        if (response.Headers.ContainsKey("Content-Encoding"))
-        {
-            return false;
-        }
-
         string? contentType = response.ContentType;
         return !string.IsNullOrWhiteSpace(contentType)
             && contentType.Contains("text/html", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string InjectScript(string html)
+    private static string InjectScript(string html, string scriptTag)
     {
-        if (html.Contains(ScriptTag, StringComparison.Ordinal))
+        if (html.Contains(scriptTag, StringComparison.Ordinal))
         {
             return html;
         }
@@ -130,15 +142,116 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
         int bodyIndex = html.IndexOf("</body>", StringComparison.OrdinalIgnoreCase);
         if (bodyIndex >= 0)
         {
-            return html.Insert(bodyIndex, ScriptTag);
+            return html.Insert(bodyIndex, scriptTag);
         }
 
         int headIndex = html.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
         if (headIndex >= 0)
         {
-            return html.Insert(headIndex, ScriptTag);
+            return html.Insert(headIndex, scriptTag);
         }
 
-        return html + ScriptTag;
+        return html + scriptTag;
+    }
+
+    private static string BuildScriptTag()
+    {
+        string versionToken = Plugin.Instance?.WebAssetVersionToken ?? "0";
+        return string.Create(
+            95 + versionToken.Length,
+            versionToken,
+            static (buffer, token) =>
+            {
+                string prefix = "<script defer src=\"/Plugins/PersonalRatings/web/details-rating.js?v=";
+                string suffix = "\"></script>";
+
+                prefix.AsSpan().CopyTo(buffer);
+                token.AsSpan().CopyTo(buffer[prefix.Length..]);
+                suffix.AsSpan().CopyTo(buffer[(prefix.Length + token.Length)..]);
+            });
+    }
+
+    private static string? GetContentEncoding(HttpResponse response)
+    {
+        string? headerValue = response.Headers.ContentEncoding.ToString();
+        if (string.IsNullOrWhiteSpace(headerValue))
+        {
+            return null;
+        }
+
+        string normalizedEncoding = headerValue.Trim();
+        if (normalizedEncoding.Contains(',', StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        return normalizedEncoding.ToLowerInvariant();
+    }
+
+    private static async Task<string?> DecodeHtmlAsync(byte[] responseBytes, string? contentEncoding, CancellationToken cancellationToken)
+    {
+        await using MemoryStream responseStream = new MemoryStream(responseBytes, writable: false);
+        Stream contentStream;
+        if (string.IsNullOrEmpty(contentEncoding))
+        {
+            contentStream = responseStream;
+        }
+        else if (string.Equals(contentEncoding, "br", StringComparison.Ordinal))
+        {
+            contentStream = new BrotliStream(responseStream, CompressionMode.Decompress, leaveOpen: false);
+        }
+        else if (string.Equals(contentEncoding, "gzip", StringComparison.Ordinal))
+        {
+            contentStream = new GZipStream(responseStream, CompressionMode.Decompress, leaveOpen: false);
+        }
+        else
+        {
+            return null;
+        }
+
+        await using (contentStream.ConfigureAwait(false))
+        {
+            using StreamReader reader = new StreamReader(contentStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            return await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task<byte[]> EncodeHtmlAsync(string html, string? contentEncoding, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(contentEncoding))
+        {
+            return Encoding.UTF8.GetBytes(html);
+        }
+
+        byte[] uncompressedHtml = Encoding.UTF8.GetBytes(html);
+        await using MemoryStream outputStream = new MemoryStream();
+        Stream contentStream;
+
+        if (string.Equals(contentEncoding, "br", StringComparison.Ordinal))
+        {
+            contentStream = new BrotliStream(outputStream, CompressionLevel.Fastest, leaveOpen: true);
+        }
+        else if (string.Equals(contentEncoding, "gzip", StringComparison.Ordinal))
+        {
+            contentStream = new GZipStream(outputStream, CompressionLevel.Fastest, leaveOpen: true);
+        }
+        else
+        {
+            return uncompressedHtml;
+        }
+
+        await using (contentStream.ConfigureAwait(false))
+        {
+            await contentStream.WriteAsync(uncompressedHtml, cancellationToken).ConfigureAwait(false);
+        }
+
+        return outputStream.ToArray();
+    }
+
+    private static void RemoveStaleStaticFileHeaders(HttpResponse response)
+    {
+        response.Headers.Remove("ETag");
+        response.Headers.Remove("Last-Modified");
+        response.Headers.Remove("Accept-Ranges");
     }
 }

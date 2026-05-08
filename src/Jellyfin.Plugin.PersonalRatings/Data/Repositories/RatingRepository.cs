@@ -306,7 +306,7 @@ internal sealed class RatingRepository : IRatingRepository
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         await using SqliteCommand countCommand = connection.CreateCommand();
-        countCommand.CommandText = "SELECT COUNT(1) FROM user_item_ratings" + whereClause + ";";
+        countCommand.CommandText = "SELECT COUNT(1) FROM user_item_ratings " + whereClause + ";";
         AddParameters(countCommand, parameters);
         object? countValue = await countCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 

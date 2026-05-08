@@ -72,6 +72,10 @@ public sealed class WebAssetsController : ControllerBase
             return NotFound();
         }
 
+        Response.Headers.CacheControl = "no-store, no-cache, max-age=0";
+        Response.Headers.Pragma = "no-cache";
+        Response.Headers.Expires = "0";
+
         return File(stream, contentType);
     }
 }
