@@ -33,7 +33,8 @@ public sealed class PluginConfiguration : BasePluginConfiguration
     public bool EnableDeleteFeature { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether physical delete requires admin privileges.
+    /// Gets or sets a legacy compatibility flag for physical delete administration.
+    /// Current plugin behavior always requires administrator privileges for physical deletion.
     /// </summary>
     public bool RequireAdminForPhysicalDelete { get; set; } = true;
 

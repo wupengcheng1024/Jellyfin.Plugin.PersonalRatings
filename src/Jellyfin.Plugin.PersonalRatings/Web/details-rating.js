@@ -260,14 +260,27 @@
             confirmDelete: true
         }).then(function (result) {
             var deletedCount = result && typeof result.DeletedCount === 'number' ? result.DeletedCount : 0;
+            var itemResult = result && result.Items && result.Items.length > 0 ? result.Items[0] : null;
             if (deletedCount > 0) {
-                updateActivePanelMessage(itemId, '条目已物理删除，正在跳转到我的评分库...');
-                window.setTimeout(openManagePage, 350);
+                var successMessage = '条目已物理删除，正在跳转到我的评分库...';
+                var redirectDelay = 350;
+                if (itemResult && itemResult.SuggestedAction) {
+                    successMessage = '条目已物理删除，但仍需处理：' + itemResult.SuggestedAction;
+                    redirectDelay = 1400;
+                }
+
+                updateActivePanelMessage(itemId, successMessage);
+                window.setTimeout(openManagePage, redirectDelay);
                 return;
             }
 
-            if (result && result.Items && result.Items.length > 0 && result.Items[0].Message) {
-                updateActivePanelMessage(itemId, '物理删除失败：' + result.Items[0].Message);
+            if (itemResult && itemResult.Message) {
+                var failureMessage = '物理删除失败：' + itemResult.Message;
+                if (itemResult.SuggestedAction) {
+                    failureMessage += ' ' + itemResult.SuggestedAction;
+                }
+
+                updateActivePanelMessage(itemId, failureMessage);
                 return;
             }
 

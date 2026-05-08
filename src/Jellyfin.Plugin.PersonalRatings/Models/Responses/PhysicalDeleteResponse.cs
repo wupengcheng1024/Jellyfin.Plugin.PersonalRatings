@@ -26,6 +26,11 @@ public sealed class PhysicalDeleteResponse
     public int FailedCount { get; set; }
 
     /// <summary>
+    /// Gets or sets the number of items that require operator attention after the request completes.
+    /// </summary>
+    public int AttentionCount { get; set; }
+
+    /// <summary>
     /// Gets or sets the per-item results.
     /// </summary>
     public IReadOnlyList<PhysicalDeleteItemResponse> Items { get; set; } = Array.Empty<PhysicalDeleteItemResponse>();

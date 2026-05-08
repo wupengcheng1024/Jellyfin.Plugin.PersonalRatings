@@ -266,7 +266,14 @@
                     if (action === 'deletePhysical') {
                         var deletedCount = result && typeof result.DeletedCount === 'number' ? result.DeletedCount : 0;
                         var failedCount = result && typeof result.FailedCount === 'number' ? result.FailedCount : 0;
-                        ManagePage.setStatus(page, '物理删除已执行，成功 ' + deletedCount + ' 条，失败 ' + failedCount + ' 条。', failedCount > 0 ? 'error' : 'success');
+                        var attentionCount = result && typeof result.AttentionCount === 'number' ? result.AttentionCount : 0;
+                        var statusMessage = '物理删除已执行，成功 ' + deletedCount + ' 条，失败 ' + failedCount + ' 条。';
+                        var attentionItem = ManagePage.getFirstPhysicalDeleteAttentionItem(result);
+                        if (attentionItem) {
+                            statusMessage += ' ' + ManagePage.buildPhysicalDeleteAttentionMessage(attentionItem);
+                        }
+
+                        ManagePage.setStatus(page, statusMessage, failedCount > 0 || attentionCount > 0 ? 'error' : 'success');
                     } else {
                         var affectedCount = result && typeof result.AffectedCount === 'number' ? result.AffectedCount : 0;
                         ManagePage.setStatus(page, successMessage + ' 已影响 ' + affectedCount + ' 条记录。', 'success');
@@ -559,6 +566,37 @@
             page.querySelectorAll('.personalRatingsAdminOnly').forEach(function (element) {
                 element.hidden = !state.isAdministrator;
             });
+        },
+
+        getFirstPhysicalDeleteAttentionItem: function (result) {
+            if (!result || !result.Items || !result.Items.length) {
+                return null;
+            }
+
+            return result.Items.find(function (item) {
+                return !!(item && (item.SuggestedAction || item.Result !== 'deleted'));
+            }) || null;
+        },
+
+        buildPhysicalDeleteAttentionMessage: function (item) {
+            if (!item) {
+                return '';
+            }
+
+            var parts = [];
+            if (item.Message) {
+                parts.push(item.Message);
+            }
+
+            if (item.SuggestedAction) {
+                parts.push(item.SuggestedAction);
+            }
+
+            if (!parts.length) {
+                return '';
+            }
+
+            return '需关注：' + parts.join(' ');
         },
 
         setStatus: function (page, message, statusType) {

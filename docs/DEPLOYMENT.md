@@ -124,7 +124,6 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 
 在更广范围部署前，建议先完成以下工作：
 
-- 物理删除权限硬约束收口
-- 审计日志可靠性增强
+- 为删除链路补自动化回归测试
 - 自动化测试补齐
 - 删除审计查询能力

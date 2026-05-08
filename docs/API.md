@@ -250,8 +250,9 @@
 说明：
 
 - 当前实现要求 `confirmDelete = true`
-- 当前设计目标是“只有管理员可以调用”
-- 删除结果会返回逐条状态，并尝试写入 `delete_audit_logs`
+- 当前实现对物理删除执行**硬性管理员限制**
+- 删除前会先校验审计写入能力，无法写审计时会阻止真正删除
+- 删除结果会返回逐条状态，并写入或尝试补齐 `delete_audit_logs`
 
 成功返回结构：
 
@@ -261,22 +262,43 @@
   "RequestedCount": 2,
   "DeletedCount": 1,
   "FailedCount": 1,
+  "AttentionCount": 1,
   "Items": [
     {
       "ItemId": "guid-1",
       "ItemName": "Deleted Item",
       "Result": "deleted",
-      "Message": "The item was deleted from Jellyfin."
+      "AuditStatus": "completed",
+      "Message": "The item was deleted from Jellyfin.",
+      "SuggestedAction": null
     },
     {
       "ItemId": "guid-2",
       "ItemName": "Missing Item",
       "Result": "notFound",
-      "Message": "The item no longer exists or cannot be resolved by Jellyfin."
+      "AuditStatus": "completed",
+      "Message": "The item no longer exists or cannot be resolved by Jellyfin.",
+      "SuggestedAction": "刷新当前列表并确认该条目仍存在于 Jellyfin 中，然后再决定是否重试。"
     }
   ]
 }
 ```
+
+`delete-physical` 的单条结果当前会附带这些额外字段：
+
+- `AuditStatus`
+  - `none`
+  - `attemptLogged`
+  - `completed`
+- `SuggestedAction`
+
+当前常见 `Result` 值包括：
+
+- `deleted`
+- `deleteFailed`
+- `notFound`
+- `auditUnavailable`
+- `forbidden`
 
 ## 批量接口通用响应
 

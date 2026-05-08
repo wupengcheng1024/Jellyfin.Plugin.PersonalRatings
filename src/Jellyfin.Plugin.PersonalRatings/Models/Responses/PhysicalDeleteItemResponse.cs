@@ -21,7 +21,17 @@ public sealed class PhysicalDeleteItemResponse
     public string Result { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the audit persistence state for this delete attempt.
+    /// </summary>
+    public string AuditStatus { get; set; } = "none";
+
+    /// <summary>
     /// Gets or sets the human-readable message for the result.
     /// </summary>
     public string? Message { get; set; }
+
+    /// <summary>
+    /// Gets or sets the suggested follow-up action when operator attention is required.
+    /// </summary>
+    public string? SuggestedAction { get; set; }
 }

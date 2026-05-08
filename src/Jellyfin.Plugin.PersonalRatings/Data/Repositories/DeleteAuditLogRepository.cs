@@ -13,6 +13,12 @@ internal sealed class DeleteAuditLogRepository : IDeleteAuditLogRepository
         _connectionFactory = connectionFactory;
     }
 
+    public Task AddAsync(DeleteAuditLog auditLog, CancellationToken cancellationToken)
+    {
+        DeleteAuditLog[] auditLogs = [auditLog];
+        return AddRangeAsync(auditLogs, cancellationToken);
+    }
+
     public async Task AddRangeAsync(IReadOnlyList<DeleteAuditLog> auditLogs, CancellationToken cancellationToken)
     {
         if (auditLogs.Count == 0)
