@@ -21,8 +21,11 @@ public sealed class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddHostedService<DatabaseInitializationHostedService>();
 
         serviceCollection.AddScoped<IRatingRepository, RatingRepository>();
+        serviceCollection.AddScoped<IDeleteAuditLogRepository, DeleteAuditLogRepository>();
         serviceCollection.AddScoped<IJellyfinItemResolver, JellyfinItemResolver>();
+        serviceCollection.AddScoped<IJellyfinDeletionAdapter, JellyfinDeletionAdapter>();
         serviceCollection.AddScoped<IRatingService, RatingService>();
+        serviceCollection.AddScoped<IDeletionService, DeletionService>();
         serviceCollection.AddSingleton<Microsoft.AspNetCore.Hosting.IStartupFilter, PersonalRatingsWebStartupFilter>();
     }
 }

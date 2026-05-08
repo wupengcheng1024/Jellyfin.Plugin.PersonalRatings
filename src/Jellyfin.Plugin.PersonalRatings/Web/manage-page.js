@@ -19,6 +19,8 @@
                 sortBy: 'updatedAt',
                 sortOrder: 'desc',
                 keyword: '',
+                isAdministrator: false,
+                adminContextLoaded: false,
                 selectedItemIds: {},
                 lastResult: null,
                 isLoading: false,
@@ -26,6 +28,7 @@
             };
 
             this.bindEvents(page);
+            this.loadUserContext(page);
             this.safeLoad(page);
 
             page.addEventListener('pageshow', function () {
@@ -222,16 +225,34 @@
             var payload = {
                 itemIds: selectedItemIds
             };
+            var successMessage = '批量操作完成。';
 
             if (action === 'setScore') {
                 path = 'Plugins/PersonalRatings/ratings/batch/set-score';
                 payload.score = parseInt(value, 10);
+                successMessage = '批量评分已保存。';
             } else if (action === 'clear') {
                 path = 'Plugins/PersonalRatings/ratings/batch/clear-score';
+                successMessage = '批量清分已完成。';
             } else if (action === 'pendingOn') {
                 path = 'Plugins/PersonalRatings/ratings/batch/set-pending-delete';
+                successMessage = '待删除标记已批量更新。';
             } else if (action === 'pendingOff') {
                 path = 'Plugins/PersonalRatings/ratings/batch/unset-pending-delete';
+                successMessage = '待删除标记已批量取消。';
+            } else if (action === 'deletePhysical') {
+                if (!this.getState(page).isAdministrator) {
+                    this.setStatus(page, '只有管理员可以执行物理删除。', 'error');
+                    return;
+                }
+
+                if (!window.confirm('物理删除会直接删除 Jellyfin 条目及其底层文件位置，且会写入审计日志。确定继续吗？')) {
+                    this.setStatus(page, '已取消物理删除。', 'success');
+                    return;
+                }
+
+                path = 'Plugins/PersonalRatings/ratings/batch/delete-physical';
+                payload.confirmDelete = true;
             }
 
             if (!path) {
@@ -242,8 +263,15 @@
 
             try {
                 this.postJson(path, payload).then(function (result) {
-                    var affectedCount = result && typeof result.AffectedCount === 'number' ? result.AffectedCount : 0;
-                    ManagePage.setStatus(page, '批量操作完成，已影响 ' + affectedCount + ' 条记录。', 'success');
+                    if (action === 'deletePhysical') {
+                        var deletedCount = result && typeof result.DeletedCount === 'number' ? result.DeletedCount : 0;
+                        var failedCount = result && typeof result.FailedCount === 'number' ? result.FailedCount : 0;
+                        ManagePage.setStatus(page, '物理删除已执行，成功 ' + deletedCount + ' 条，失败 ' + failedCount + ' 条。', failedCount > 0 ? 'error' : 'success');
+                    } else {
+                        var affectedCount = result && typeof result.AffectedCount === 'number' ? result.AffectedCount : 0;
+                        ManagePage.setStatus(page, successMessage + ' 已影响 ' + affectedCount + ' 条记录。', 'success');
+                    }
+
                     ManagePage.getState(page).selectedItemIds = {};
                     ManagePage.safeLoad(page);
                 }).catch(function (error) {
@@ -282,6 +310,26 @@
                 this.load(page);
             } catch (error) {
                 this.handleRequestError(page, error, '当前页面未取得 Jellyfin Web 的登录上下文。');
+            }
+        },
+
+        loadUserContext: function (page) {
+            var state = this.getState(page);
+
+            try {
+                this.getApiClient().getCurrentUser().then(function (user) {
+                    state.isAdministrator = !!(user && user.Policy && user.Policy.IsAdministrator);
+                    state.adminContextLoaded = true;
+                    ManagePage.renderAdminControls(page);
+                }).catch(function () {
+                    state.isAdministrator = false;
+                    state.adminContextLoaded = true;
+                    ManagePage.renderAdminControls(page);
+                });
+            } catch (error) {
+                state.isAdministrator = false;
+                state.adminContextLoaded = true;
+                ManagePage.renderAdminControls(page);
             }
         },
 
@@ -336,6 +384,7 @@
             var apiClient = this.getApiClient();
             var serverId = apiClient.serverId();
 
+            this.renderAdminControls(page);
             page.querySelectorAll('.personalRatingsPresetButton').forEach(function (button) {
                 button.classList.toggle('is-active', button.getAttribute('data-preset') === state.preset);
             });
@@ -503,6 +552,13 @@
         setLoading: function (page, isLoading) {
             this.getState(page).isLoading = isLoading;
             page.classList.toggle('is-loading', isLoading);
+        },
+
+        renderAdminControls: function (page) {
+            var state = this.getState(page);
+            page.querySelectorAll('.personalRatingsAdminOnly').forEach(function (element) {
+                element.hidden = !state.isAdministrator;
+            });
         },
 
         setStatus: function (page, message, statusType) {

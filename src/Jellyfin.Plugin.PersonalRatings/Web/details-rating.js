@@ -11,6 +11,8 @@
     var styleId = 'personalRatingsInjectedStyles';
     var launcherId = 'personalRatingsLauncher';
     var panelClassName = 'personalRatingsDetailPanel';
+    var isAdministrator = false;
+    var isUserContextLoading = false;
     var currentRequestVersion = 0;
 
     injectStyles();
@@ -34,11 +36,14 @@
 
     function sync() {
         if (!window.ApiClient || typeof window.ApiClient.isLoggedIn !== 'function' || !window.ApiClient.isLoggedIn()) {
+            isAdministrator = false;
+            isUserContextLoading = false;
             removeDetailPanel();
             hideLauncher();
             return;
         }
 
+        ensureUserContext();
         ensureLauncher();
 
         var detailsPage = document.querySelector('.itemDetailPage:not(.hide)');
@@ -92,6 +97,7 @@
                 '<div class="personalRatingsMetaRow">',
                 '  <button type="button" class="button-flat personalRatingsClearButton">清除评分</button>',
                 '  <button type="button" class="button-flat personalRatingsPendingButton">标记待删除</button>',
+                '  <button type="button" class="button-flat personalRatingsDeleteButton" hidden="hidden">物理删除</button>',
                 '</div>',
                 '<div class="personalRatingsDetailSummary">正在读取当前评分...</div>'
             ].join('');
@@ -118,6 +124,11 @@
                     return;
                 }
 
+                if (target.closest('.personalRatingsDeleteButton')) {
+                    deletePhysical(panel.dataset.itemId);
+                    return;
+                }
+
                 if (target.closest('.personalRatingsManageButton')) {
                     openManagePage();
                 }
@@ -125,6 +136,8 @@
 
             buttonRow.insertAdjacentElement('afterend', panel);
         }
+
+        renderAdminControls(panel);
 
         if (panel.dataset.itemId !== itemId) {
             panel.dataset.itemId = itemId;
@@ -227,6 +240,46 @@
             }).catch(function () {
                 updateActivePanelMessage(itemId, '待删除状态更新失败。');
             });
+    }
+
+    function deletePhysical(itemId) {
+        if (!isAdministrator) {
+            updateActivePanelMessage(itemId, '只有管理员可以执行物理删除。');
+            return;
+        }
+
+        if (!window.confirm('物理删除会直接删除 Jellyfin 条目及其底层文件位置，且会写入审计日志。确定继续吗？')) {
+            updateActivePanelMessage(itemId, '已取消物理删除。');
+            return;
+        }
+
+        updateActivePanelMessage(itemId, '正在执行物理删除...');
+
+        postJson('Plugins/PersonalRatings/ratings/batch/delete-physical', {
+            itemIds: [itemId],
+            confirmDelete: true
+        }).then(function (result) {
+            var deletedCount = result && typeof result.DeletedCount === 'number' ? result.DeletedCount : 0;
+            if (deletedCount > 0) {
+                updateActivePanelMessage(itemId, '条目已物理删除，正在跳转到我的评分库...');
+                window.setTimeout(openManagePage, 350);
+                return;
+            }
+
+            if (result && result.Items && result.Items.length > 0 && result.Items[0].Message) {
+                updateActivePanelMessage(itemId, '物理删除失败：' + result.Items[0].Message);
+                return;
+            }
+
+            updateActivePanelMessage(itemId, '物理删除未成功。');
+        }).catch(function (error) {
+            if (error && error.status === 403) {
+                updateActivePanelMessage(itemId, '只有管理员可以执行物理删除。');
+                return;
+            }
+
+            updateActivePanelMessage(itemId, '物理删除失败。');
+        });
     }
 
     function buildSummary(result) {
@@ -338,6 +391,35 @@
         }
     }
 
+    function ensureUserContext() {
+        if (isUserContextLoading || !window.ApiClient || typeof window.ApiClient.getCurrentUser !== 'function') {
+            return;
+        }
+
+        isUserContextLoading = true;
+
+        window.ApiClient.getCurrentUser().then(function (user) {
+            isAdministrator = !!(user && user.Policy && user.Policy.IsAdministrator);
+            isUserContextLoading = false;
+            renderAdminControls(document.querySelector('.' + panelClassName));
+        }).catch(function () {
+            isAdministrator = false;
+            isUserContextLoading = false;
+            renderAdminControls(document.querySelector('.' + panelClassName));
+        });
+    }
+
+    function renderAdminControls(panel) {
+        if (!panel) {
+            return;
+        }
+
+        var deleteButton = panel.querySelector('.personalRatingsDeleteButton');
+        if (deleteButton) {
+            deleteButton.hidden = !isAdministrator;
+        }
+    }
+
     function postJson(path, payload) {
         var apiClient = window.ApiClient;
         return apiClient.ajax({
@@ -408,6 +490,13 @@
             '  background: rgba(229, 139, 47, 0.22);',
             '  border-color: rgba(229, 139, 47, 0.4);',
             '  color: #fff3e2;',
+            '}',
+            '.personalRatingsDeleteButton {',
+            '  border-color: rgba(255, 107, 107, 0.32);',
+            '  color: #ffd0d0;',
+            '}',
+            '.personalRatingsDeleteButton:hover {',
+            '  background: rgba(255, 107, 107, 0.16);',
             '}',
             '.personalRatingsDetailSummary {',
             '  margin-top: 14px;',

@@ -17,6 +17,8 @@ internal interface IRatingRepository
 
     Task<IReadOnlyList<UserItemRating>> SetPendingDeleteAsync(Guid userId, IReadOnlyList<Guid> itemIds, bool isPendingDelete, CancellationToken cancellationToken);
 
+    Task<int> DeleteForItemsAsync(IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken);
+
     Task<PagedQueryResult<UserItemRating>> QueryPageAsync(Guid userId, RatingQueryRequest request, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<UserItemRating>> ListAsync(Guid userId, RatingQueryRequest request, CancellationToken cancellationToken);

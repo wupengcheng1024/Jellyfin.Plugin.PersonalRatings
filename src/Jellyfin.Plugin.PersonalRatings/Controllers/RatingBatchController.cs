@@ -18,6 +18,7 @@ namespace Jellyfin.Plugin.PersonalRatings.Controllers;
 public sealed class RatingBatchController : ControllerBase
 {
     private readonly ILogger<RatingBatchController> _logger;
+    private readonly IDeletionService _deletionService;
     private readonly IRatingService _ratingService;
 
     /// <summary>
@@ -25,9 +26,13 @@ public sealed class RatingBatchController : ControllerBase
     /// </summary>
     /// <param name="ratingService">The rating service.</param>
     /// <param name="logger">The logger.</param>
-    public RatingBatchController(IRatingService ratingService, ILogger<RatingBatchController> logger)
+    public RatingBatchController(
+        IRatingService ratingService,
+        IDeletionService deletionService,
+        ILogger<RatingBatchController> logger)
     {
         _ratingService = ratingService;
+        _deletionService = deletionService;
         _logger = logger;
     }
 
@@ -166,6 +171,59 @@ public sealed class RatingBatchController : ControllerBase
     public async Task<ActionResult<BatchOperationResponse>> UnsetPendingDelete([FromBody] BatchPendingDeleteRequest request, CancellationToken cancellationToken)
     {
         return await UpdatePendingDeleteAsync(request, false, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Physically deletes many items. This endpoint is restricted to administrators when the plugin is configured to require admin deletion.
+    /// </summary>
+    /// <param name="request">The physical delete request.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The physical delete response.</returns>
+    [HttpPost("delete-physical")]
+    [ProducesResponseType<PhysicalDeleteResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PhysicalDeleteResponse>> DeletePhysical([FromBody] BatchPhysicalDeleteRequest request, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        if (!TryGetUserId(out Guid userId))
+        {
+            return Unauthorized();
+        }
+
+        if (!TryParseItemIds(request.ItemIds, out IReadOnlyList<Guid> itemIds, out ActionResult? errorResult))
+        {
+            return errorResult!;
+        }
+
+        try
+        {
+            PhysicalDeleteResponse response = await _deletionService
+                .DeleteItemsAsync(userId, itemIds, request.ConfirmDelete, cancellationToken)
+                .ConfigureAwait(false);
+            return Ok(response);
+        }
+        catch (ArgumentException exception)
+        {
+            _logger.LogWarning(exception, "Rejected physical delete request for user {UserId}", userId);
+            return BadRequest(exception.Message);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            _logger.LogWarning(exception, "Rejected physical delete request for user {UserId}", userId);
+            return Forbid();
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Unexpected error while physically deleting items for user {UserId}", userId);
+            return Problem(title: "Failed to physically delete items.", statusCode: StatusCodes.Status500InternalServerError);
+        }
     }
 
     private async Task<ActionResult<BatchOperationResponse>> UpdatePendingDeleteAsync(

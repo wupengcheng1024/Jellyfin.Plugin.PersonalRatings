@@ -294,6 +294,34 @@ internal sealed class RatingRepository : IRatingRepository
         return await GetManyAsync(userId, itemIds, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<int> DeleteForItemsAsync(IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken)
+    {
+        if (itemIds.Count == 0)
+        {
+            return 0;
+        }
+
+        await using SqliteConnection connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await using SqliteCommand command = connection.CreateCommand();
+
+        List<string> parameterNames = [];
+        for (int index = 0; index < itemIds.Count; index++)
+        {
+            string parameterName = "@itemId" + index.ToString(CultureInfo.InvariantCulture);
+            parameterNames.Add(parameterName);
+            command.Parameters.AddWithValue(parameterName, itemIds[index].ToString("D", CultureInfo.InvariantCulture));
+        }
+
+        command.CommandText = $"""
+            DELETE FROM user_item_ratings
+            WHERE item_id IN ({string.Join(", ", parameterNames)});
+            """;
+
+        return await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<PagedQueryResult<UserItemRating>> QueryPageAsync(Guid userId, RatingQueryRequest request, CancellationToken cancellationToken)
     {
         List<SqliteParameter> parameters = [];

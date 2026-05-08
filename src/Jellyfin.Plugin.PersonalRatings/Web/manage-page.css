@@ -83,6 +83,15 @@
     border-color: rgba(229, 139, 47, 0.34);
 }
 
+.personalRatingsDangerButton {
+    border-color: rgba(255, 107, 107, 0.32);
+    color: #ffd0d0;
+}
+
+.personalRatingsDangerButton:hover {
+    background: rgba(255, 107, 107, 0.18);
+}
+
 .personalRatingsToolbar {
     justify-content: space-between;
 }
