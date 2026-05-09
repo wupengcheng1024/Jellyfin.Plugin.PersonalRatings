@@ -127,6 +127,85 @@
     flex-wrap: wrap;
 }
 
+.personalRatingsTagFilterPanel {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--pr-border);
+}
+
+.personalRatingsTagFilterHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.personalRatingsTagFilterSummaryText {
+    font-size: 13px;
+    color: var(--pr-text-muted);
+}
+
+.personalRatingsTagFilterEmpty {
+    margin-top: 14px;
+    color: var(--pr-text-muted);
+    line-height: 1.6;
+}
+
+.personalRatingsFilterTagList,
+.personalRatingsTagFilterControls {
+    margin-top: 14px;
+}
+
+.personalRatingsBatchTagPanel {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--pr-border);
+}
+
+.personalRatingsBatchTagHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.personalRatingsBatchTagSelectionText {
+    font-size: 13px;
+    color: var(--pr-text-muted);
+}
+
+.personalRatingsBatchTagEmpty {
+    margin-top: 14px;
+    color: var(--pr-text-muted);
+    line-height: 1.6;
+}
+
+.personalRatingsBatchTagList {
+    margin-top: 14px;
+}
+
+.personalRatingsBatchTagActions {
+    margin-top: 14px;
+}
+
+.personalRatingsBatchTagButton.is-active {
+    background: var(--pr-accent-soft);
+    color: #fff;
+    border-color: rgba(229, 139, 47, 0.34);
+}
+
+.personalRatingsFilterTagButton.is-active {
+    background: var(--pr-accent-soft);
+    color: #fff;
+    border-color: rgba(229, 139, 47, 0.34);
+}
+
+.personalRatingsAssignedTagList {
+    margin-top: 10px;
+}
+
 .personalRatingsBatchHint,
 .personalRatingsSummaryText,
 .personalRatingsStatusText,
@@ -250,6 +329,11 @@
 
     .personalRatingsToolbarGroup,
     .personalRatingsBatchActions {
+        align-items: stretch;
+    }
+
+    .personalRatingsTagFilterHeader {
+        flex-direction: column;
         align-items: stretch;
     }
 }

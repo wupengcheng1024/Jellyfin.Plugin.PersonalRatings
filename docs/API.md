@@ -89,6 +89,11 @@
 
 用于前台“打分库”浏览页和评分后台页的分页查询。
 
+当前后台页会直接复用这组字段完成标签筛选：
+
+- `tagIds`
+- `tagMatchMode`
+
 请求体字段：
 
 ```json
@@ -259,6 +264,8 @@
 
 批量为当前用户的条目增加标签。
 
+当前评分后台页会复用这个接口完成“多选条目后批量添加标签”。
+
 请求体：
 
 ```json
@@ -274,6 +281,8 @@
 ### `POST /remove-tags`
 
 批量为当前用户的条目移除标签。
+
+当前评分后台页会复用这个接口完成“多选条目后批量移除标签”。
 
 请求体：
 
@@ -592,6 +601,7 @@
 - 配置页：`PersonalRatingsConfigPage`
 - 评分后台页：`PersonalRatingsManagePage`
 - 评分后台前端路由：`#/configurationpage?name=PersonalRatingsManagePage`
+- 评分后台当前支持：批量评分、清分、待删除切换、批量添加标签、批量移除标签
 - 标签管理页：`PersonalRatingsTagManagePage`
 - 标签管理前端路由：`#/configurationpage?name=PersonalRatingsTagManagePage`
 - 删除审计页：`PersonalRatingsAuditPage`

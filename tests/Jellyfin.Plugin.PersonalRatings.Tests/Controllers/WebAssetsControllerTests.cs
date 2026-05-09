@@ -1,5 +1,6 @@
 using Jellyfin.Plugin.PersonalRatings.Controllers;
 using Jellyfin.Plugin.PersonalRatings.Tests.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -46,5 +47,23 @@ public sealed class WebAssetsControllerTests
         Assert.IsType<NotFoundResult>(controller.GetBrowseFiltersScript());
         Assert.IsType<NotFoundResult>(controller.GetBrowseShellScript());
         Assert.IsType<NotFoundResult>(controller.GetBrowsePageStyles());
+    }
+
+    [Fact]
+    public void GetManageAssets_ReturnEmbeddedFiles_WhenManagePageIsEnabled()
+    {
+        WebAssetsController controller = new(
+            new TestFeatureService
+            {
+                IsManagePageEnabled = true
+            },
+            NullLogger<WebAssetsController>.Instance);
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+
+        Assert.IsType<FileStreamResult>(controller.GetManagePageScript());
+        Assert.IsType<FileStreamResult>(controller.GetManagePageStyles());
     }
 }

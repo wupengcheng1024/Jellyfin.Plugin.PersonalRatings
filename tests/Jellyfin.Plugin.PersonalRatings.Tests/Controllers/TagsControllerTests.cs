@@ -47,6 +47,24 @@ public sealed class TagsControllerTests
     }
 
     [Fact]
+    public async Task GetTags_ReturnsOk_WhenServiceReturnsEmptyList()
+    {
+        Guid userId = Guid.NewGuid();
+        Mock<ITagService> tagService = new(MockBehavior.Strict);
+        tagService
+            .Setup(service => service.GetTagDefinitionsAsync(userId, false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<TagDefinitionResponse>());
+
+        TagsController controller = CreateController(tagService.Object, userId);
+
+        ActionResult<IReadOnlyList<TagDefinitionResponse>> actionResult = await controller.GetTags(includeDisabled: false, CancellationToken.None);
+
+        OkObjectResult okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+        IReadOnlyList<TagDefinitionResponse> payload = Assert.IsAssignableFrom<IReadOnlyList<TagDefinitionResponse>>(okResult.Value);
+        Assert.Empty(payload);
+    }
+
+    [Fact]
     public async Task CreateTag_ReturnsOk_WhenServiceCreatesDefinition()
     {
         Guid userId = Guid.NewGuid();

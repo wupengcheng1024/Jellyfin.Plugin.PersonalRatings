@@ -5,6 +5,319 @@
         return;
     }
 
+    /**
+     * Handles shared tag-definition loading, filter chips and batch add/remove calls
+     * for the management page without expanding the main page controller further.
+     */
+    var ManagePageTagHelper = {
+        loadAvailableTags: function (page, forceReload) {
+            var state = ManagePage.getState(page);
+            var request;
+            if (state.isTagLoading) {
+                return state.tagLoadingPromise || Promise.resolve(state.availableTags);
+            }
+
+            if (state.tagsLoaded && !forceReload) {
+                this.renderPanel(page);
+                this.renderFilters(page);
+                return Promise.resolve(state.availableTags);
+            }
+
+            state.isTagLoading = true;
+            try {
+                request = ManagePage.getJson('Plugins/PersonalRatings/tags');
+            } catch (error) {
+                state.availableTags = [];
+                state.tagsLoaded = true;
+                state.selectedBatchTagIds = [];
+                state.selectedFilterTagIds = [];
+                state.isTagLoading = false;
+                this.renderPanel(page);
+                this.renderFilters(page);
+                return Promise.resolve(state.availableTags);
+            }
+
+            state.tagLoadingPromise = request.then(function (result) {
+                state.availableTags = Array.isArray(result) ? result : [];
+                state.tagsLoaded = true;
+                state.selectedBatchTagIds = state.selectedBatchTagIds.filter(function (tagId) {
+                    return state.availableTags.some(function (tag) {
+                        return tag.Id === tagId;
+                    });
+                });
+                state.selectedFilterTagIds = state.selectedFilterTagIds.filter(function (tagId) {
+                    return state.availableTags.some(function (tag) {
+                        return tag.Id === tagId;
+                    });
+                });
+                ManagePageTagHelper.renderPanel(page);
+                ManagePageTagHelper.renderFilters(page);
+                return state.availableTags;
+            }).catch(function () {
+                state.availableTags = [];
+                state.tagsLoaded = true;
+                state.selectedBatchTagIds = [];
+                state.selectedFilterTagIds = [];
+                ManagePageTagHelper.renderPanel(page);
+                ManagePageTagHelper.renderFilters(page);
+                return state.availableTags;
+            }).finally(function () {
+                state.isTagLoading = false;
+                state.tagLoadingPromise = null;
+            });
+
+            return state.tagLoadingPromise;
+        },
+
+        togglePanel: function (page) {
+            var state = ManagePage.getState(page);
+            state.isTagPanelOpen = !state.isTagPanelOpen;
+            this.renderPanel(page);
+
+            if (state.isTagPanelOpen) {
+                this.loadAvailableTags(page, false);
+            }
+        },
+
+        toggleTagSelection: function (page, tagId) {
+            if (!tagId || Number.isNaN(tagId)) {
+                return;
+            }
+
+            var state = ManagePage.getState(page);
+            var index = state.selectedBatchTagIds.indexOf(tagId);
+            if (index >= 0) {
+                state.selectedBatchTagIds.splice(index, 1);
+            } else {
+                state.selectedBatchTagIds.push(tagId);
+            }
+
+            this.renderPanel(page);
+        },
+
+        toggleFilterTagSelection: function (page, tagId) {
+            if (!tagId || Number.isNaN(tagId)) {
+                return;
+            }
+
+            var state = ManagePage.getState(page);
+            var index = state.selectedFilterTagIds.indexOf(tagId);
+            if (index >= 0) {
+                state.selectedFilterTagIds.splice(index, 1);
+            } else {
+                state.selectedFilterTagIds.push(tagId);
+            }
+
+            state.pageNumber = 1;
+            this.renderFilters(page);
+            ManagePage.safeLoad(page);
+        },
+
+        clearFilterTags: function (page) {
+            var state = ManagePage.getState(page);
+            if (!state.selectedFilterTagIds.length) {
+                return;
+            }
+
+            state.selectedFilterTagIds = [];
+            state.pageNumber = 1;
+            this.renderFilters(page);
+            ManagePage.safeLoad(page);
+        },
+
+        applyFilterTagMatchMode: function (page, value) {
+            var state = ManagePage.getState(page);
+            state.tagMatchMode = value === 'all' ? 'all' : 'any';
+            state.pageNumber = 1;
+            this.renderFilters(page);
+            ManagePage.safeLoad(page);
+        },
+
+        runBatchUpdate: function (page, operation) {
+            var selectedItemIds = ManagePage.getSelectedItemIds(page);
+            var selectedTagIds = this.getSelectedTagIds(page);
+            if (selectedItemIds.length === 0) {
+                ManagePage.setStatus(page, '请先选择至少一个条目，再执行批量标签操作。', 'error');
+                return;
+            }
+
+            if (selectedTagIds.length === 0) {
+                ManagePage.setStatus(page, '请先选择至少一个标签。', 'error');
+                return;
+            }
+
+            var path = operation === 'add'
+                ? 'Plugins/PersonalRatings/ratings/batch/add-tags'
+                : 'Plugins/PersonalRatings/ratings/batch/remove-tags';
+            var selectedTagNames = this.getSelectedTagNames(page).join(' / ');
+            var request;
+            ManagePage.setStatus(page, operation === 'add' ? '正在批量添加标签...' : '正在批量移除标签...', 'loading');
+
+            try {
+                request = ManagePage.postJson(path, {
+                    itemIds: selectedItemIds,
+                    tagIds: selectedTagIds
+                });
+            } catch (error) {
+                ManagePage.handleRequestError(page, error, '批量标签操作失败。');
+                return;
+            }
+
+            request.then(function (result) {
+                var affectedCount = result && typeof result.AffectedCount === 'number' ? result.AffectedCount : 0;
+                var verb = operation === 'add' ? '添加' : '移除';
+                ManagePage.setStatus(page, '批量' + verb + '标签已完成。已影响 ' + affectedCount + ' 条记录。标签：' + selectedTagNames, 'success');
+                ManagePage.getState(page).selectedItemIds = {};
+                ManagePage.safeLoad(page);
+                ManagePageTagHelper.renderPanel(page);
+            }).catch(function (error) {
+                ManagePage.handleRequestError(page, error, '批量标签操作失败。');
+            });
+        },
+
+        renderPanel: function (page) {
+            var state = ManagePage.getState(page);
+            var panel = page.querySelector('.personalRatingsBatchTagPanel');
+            var list = page.querySelector('.personalRatingsBatchTagList');
+            var empty = page.querySelector('.personalRatingsBatchTagEmpty');
+            var selectionText = page.querySelector('.personalRatingsBatchTagSelectionText');
+            var selectedItemCount = ManagePage.getSelectedItemIds(page).length;
+            var selectedTagIds = state.selectedBatchTagIds || [];
+            var selectedTagNames = this.getSelectedTagNames(page);
+            var toggleButton = page.querySelector('.personalRatingsToggleTagPanelButton');
+
+            panel.hidden = !state.isTagPanelOpen;
+            if (toggleButton) {
+                toggleButton.classList.toggle('is-active', state.isTagPanelOpen);
+                toggleButton.textContent = state.isTagPanelOpen ? '收起标签' : '批量标签';
+            }
+
+            if (!state.isTagPanelOpen) {
+                return;
+            }
+
+            if (state.isTagLoading && !state.tagsLoaded) {
+                list.innerHTML = '<span class="personalRatingsTag">正在加载标签...</span>';
+                empty.hidden = true;
+            } else if (!state.availableTags.length) {
+                list.innerHTML = '';
+                empty.hidden = false;
+            } else {
+                empty.hidden = true;
+                list.innerHTML = state.availableTags.map(function (tag) {
+                    var isActive = selectedTagIds.indexOf(tag.Id) >= 0;
+                    var background = ManagePage.hexToTransparent(tag.Color || '#d88b2f', 0.18);
+                    return '<button is="emby-button" type="button" class="button-flat personalRatingsTag personalRatingsBatchTagButton'
+                        + (isActive ? ' is-active' : '')
+                        + '" data-batch-tag-id="' + tag.Id + '" style="background:' + background + '; border:1px solid ' + ManagePage.escapeHtml(tag.Color || '#d88b2f') + ';">'
+                        + ManagePage.escapeHtml(tag.Name)
+                        + '</button>';
+                }).join('');
+            }
+
+            if (selectedTagNames.length > 0) {
+                selectionText.textContent = '将要操作的标签：' + selectedTagNames.join(' / ');
+            } else if (!state.availableTags.length) {
+                selectionText.textContent = '当前没有可用标签。';
+            } else {
+                selectionText.textContent = '当前未选择标签。';
+            }
+
+            page.querySelectorAll('.personalRatingsBatchTagApplyButton').forEach(function (button) {
+                button.disabled = selectedItemCount === 0 || selectedTagIds.length === 0 || state.availableTags.length === 0;
+            });
+        },
+
+        renderFilters: function (page) {
+            var state = ManagePage.getState(page);
+            var list = page.querySelector('.personalRatingsFilterTagList');
+            var empty = page.querySelector('.personalRatingsTagFilterEmpty');
+            var summary = page.querySelector('.personalRatingsTagFilterSummaryText');
+            var matchField = page.querySelector('.personalRatingsFilterTagMatchField');
+            var selectedTagIds = state.selectedFilterTagIds || [];
+            var selectedTagNames = this.getSelectedFilterTagNames(page);
+            var clearButton = page.querySelector('.personalRatingsClearTagFiltersButton');
+
+            if (state.isTagLoading && !state.tagsLoaded) {
+                list.innerHTML = '<span class="personalRatingsTag">正在加载标签...</span>';
+                empty.hidden = true;
+            } else if (!state.availableTags.length) {
+                list.innerHTML = '';
+                empty.hidden = false;
+            } else {
+                empty.hidden = true;
+                list.innerHTML = state.availableTags.map(function (tag) {
+                    var isActive = selectedTagIds.indexOf(tag.Id) >= 0;
+                    var background = isActive
+                        ? ManagePage.hexToTransparent(tag.Color || '#d88b2f', 0.18)
+                        : 'rgba(255, 255, 255, 0.08)';
+                    return '<button is="emby-button" type="button" class="button-flat personalRatingsTag personalRatingsFilterTagButton'
+                        + (isActive ? ' is-active' : '')
+                        + '" data-filter-tag-id="' + tag.Id + '" style="background:' + background + '; border:1px solid ' + ManagePage.escapeHtml(tag.Color || '#d88b2f') + ';">'
+                        + ManagePage.escapeHtml(tag.Name)
+                        + '</button>';
+                }).join('');
+            }
+
+            if (selectedTagNames.length > 0) {
+                summary.textContent = '当前标签筛选：' + selectedTagNames.join(' / ')
+                    + (selectedTagNames.length > 1 ? '（' + (state.tagMatchMode === 'all' ? '必须同时包含' : '匹配任一标签') + '）' : '');
+            } else if (!state.availableTags.length) {
+                summary.textContent = '当前没有可用标签筛选。';
+            } else {
+                summary.textContent = '当前未启用标签筛选。';
+            }
+
+            matchField.hidden = selectedTagIds.length <= 1;
+            page.querySelector('.selectFilterTagMatch').value = state.tagMatchMode || 'any';
+            clearButton.disabled = selectedTagIds.length === 0;
+        },
+
+        renderAssignedTags: function (tags) {
+            var safeTags = Array.isArray(tags) ? tags : [];
+            if (!safeTags.length) {
+                return '';
+            }
+
+            var visibleTags = safeTags.slice(0, 3);
+            var overflowTagCount = Math.max(0, safeTags.length - visibleTags.length);
+            var renderedTags = visibleTags.map(function (tag) {
+                var background = ManagePage.hexToTransparent(tag.Color || '#d88b2f', 0.18);
+                return '<span class="personalRatingsTag" style="background:' + background + '; border:1px solid ' + ManagePage.escapeHtml(tag.Color || '#d88b2f') + ';">'
+                    + ManagePage.escapeHtml(tag.Name)
+                    + '</span>';
+            });
+
+            if (overflowTagCount > 0) {
+                renderedTags.push('<span class="personalRatingsTag">+' + overflowTagCount + '</span>');
+            }
+
+            return '<div class="personalRatingsTagList personalRatingsAssignedTagList">' + renderedTags.join('') + '</div>';
+        },
+
+        getSelectedTagIds: function (page) {
+            return ManagePage.getState(page).selectedBatchTagIds || [];
+        },
+
+        getSelectedTagNames: function (page) {
+            var state = ManagePage.getState(page);
+            return state.availableTags.filter(function (tag) {
+                return state.selectedBatchTagIds.indexOf(tag.Id) >= 0;
+            }).map(function (tag) {
+                return tag.Name;
+            });
+        },
+
+        getSelectedFilterTagNames: function (page) {
+            var state = ManagePage.getState(page);
+            return state.availableTags.filter(function (tag) {
+                return state.selectedFilterTagIds.indexOf(tag.Id) >= 0;
+            }).map(function (tag) {
+                return tag.Name;
+            });
+        }
+    };
+
     var ManagePage = {
         register: function (page) {
             if (!page || page.dataset.personalRatingsRegistered === 'true') {
@@ -26,6 +339,14 @@
                 isAdministrator: false,
                 adminContextLoaded: false,
                 selectedItemIds: {},
+                selectedBatchTagIds: [],
+                selectedFilterTagIds: [],
+                availableTags: [],
+                tagsLoaded: false,
+                isTagLoading: false,
+                tagLoadingPromise: null,
+                isTagPanelOpen: false,
+                tagMatchMode: 'any',
                 lastResult: null,
                 isLoading: false,
                 requestVersion: 0
@@ -35,10 +356,12 @@
             this.loadUserContext(page);
             this.loadFeatureState(page).finally(function () {
                 ManagePage.renderAdminControls(page);
+                ManagePageTagHelper.loadAvailableTags(page, false);
                 ManagePage.safeLoad(page);
             });
 
             page.addEventListener('pageshow', function () {
+                ManagePageTagHelper.loadAvailableTags(page, true);
                 ManagePage.safeLoad(page);
             });
         },
@@ -68,6 +391,12 @@
                     return;
                 }
 
+                if (button.classList.contains('personalRatingsToggleTagPanelButton')) {
+                    event.preventDefault();
+                    ManagePageTagHelper.togglePanel(page);
+                    return;
+                }
+
                 if (button.hasAttribute('data-preset')) {
                     event.preventDefault();
                     ManagePage.applyPreset(page, button.getAttribute('data-preset'));
@@ -83,6 +412,30 @@
                 if (button.hasAttribute('data-batch-action')) {
                     event.preventDefault();
                     ManagePage.runBatch(page, button.getAttribute('data-batch-action'));
+                    return;
+                }
+
+                if (button.hasAttribute('data-tag-batch-action')) {
+                    event.preventDefault();
+                    ManagePageTagHelper.runBatchUpdate(page, button.getAttribute('data-tag-batch-action'));
+                    return;
+                }
+
+                if (button.hasAttribute('data-batch-tag-id')) {
+                    event.preventDefault();
+                    ManagePageTagHelper.toggleTagSelection(page, parseInt(button.getAttribute('data-batch-tag-id'), 10));
+                    return;
+                }
+
+                if (button.hasAttribute('data-filter-tag-id')) {
+                    event.preventDefault();
+                    ManagePageTagHelper.toggleFilterTagSelection(page, parseInt(button.getAttribute('data-filter-tag-id'), 10));
+                    return;
+                }
+
+                if (button.classList.contains('personalRatingsClearTagFiltersButton')) {
+                    event.preventDefault();
+                    ManagePageTagHelper.clearFilterTags(page);
                     return;
                 }
 
@@ -130,6 +483,11 @@
 
                 if (target.classList.contains('personalRatingsRowCheckbox')) {
                     ManagePage.toggleSelectedItem(page, target.getAttribute('data-item-id'), target.checked);
+                    return;
+                }
+
+                if (target.classList.contains('selectFilterTagMatch')) {
+                    ManagePageTagHelper.applyFilterTagMatchMode(page, target.value || 'any');
                 }
             });
 
@@ -470,6 +828,7 @@
                         + '<td>'
                         + '<a class="personalRatingsItemName" href="' + detailsUrl + '">' + itemName + '</a>'
                         + '<div class="personalRatingsItemMeta">' + itemType + yearText + '</div>'
+                        + ManagePageTagHelper.renderAssignedTags(item.Tags)
                         + '</td>'
                         + '<td><span class="personalRatingsScoreBadge' + (item.Score > 0 ? ' is-rated' : '') + '">' + scoreText + '</span></td>'
                         + '<td><div class="personalRatingsTagList">' + statusTags.join('') + '</div></td>'
@@ -486,6 +845,8 @@
             this.renderSelectionState(page);
             this.renderPagination(page, result);
             this.renderSummary(page, result);
+            ManagePageTagHelper.renderFilters(page);
+            ManagePageTagHelper.renderPanel(page);
         },
 
         renderSelectionState: function (page) {
@@ -497,6 +858,8 @@
             var hasItems = items.length > 0;
             var isAllSelected = hasItems && selectedItemIds.length === items.length;
             page.querySelector('.checkSelectAll').checked = isAllSelected;
+            ManagePageTagHelper.renderFilters(page);
+            ManagePageTagHelper.renderPanel(page);
         },
 
         renderPagination: function (page, result) {
@@ -529,6 +892,11 @@
 
             if (state.keyword) {
                 request.keyword = state.keyword;
+            }
+
+            if (state.selectedFilterTagIds && state.selectedFilterTagIds.length > 0) {
+                request.tagIds = state.selectedFilterTagIds.slice();
+                request.tagMatchMode = state.tagMatchMode || 'any';
             }
 
             switch (state.preset) {
@@ -675,6 +1043,8 @@
             this.setStatus(page, message, 'error');
             page.querySelector('.personalRatingsPrevPageButton').disabled = true;
             page.querySelector('.personalRatingsNextPageButton').disabled = true;
+            ManagePageTagHelper.renderFilters(page);
+            ManagePageTagHelper.renderPanel(page);
         },
 
         postJson: function (path, payload) {
@@ -685,6 +1055,15 @@
                 contentType: 'application/json',
                 dataType: 'json',
                 data: JSON.stringify(payload)
+            });
+        },
+
+        getJson: function (path) {
+            var apiClient = this.getApiClient();
+            return apiClient.ajax({
+                type: 'GET',
+                url: apiClient.getUrl(path),
+                dataType: 'json'
             });
         },
 
@@ -726,6 +1105,24 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
+        },
+
+        hexToTransparent: function (hex, alpha) {
+            var value = String(hex || '').replace('#', '');
+            if (value.length === 3) {
+                value = value.charAt(0) + value.charAt(0)
+                    + value.charAt(1) + value.charAt(1)
+                    + value.charAt(2) + value.charAt(2);
+            }
+
+            if (value.length !== 6) {
+                return 'rgba(216, 139, 47, ' + alpha + ')';
+            }
+
+            var red = parseInt(value.substring(0, 2), 16);
+            var green = parseInt(value.substring(2, 4), 16);
+            var blue = parseInt(value.substring(4, 6), 16);
+            return 'rgba(' + red + ', ' + green + ', ' + blue + ', ' + alpha + ')';
         }
     };
 
