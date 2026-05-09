@@ -7,6 +7,7 @@
 - Jellyfin：**10.10.7**
 - .NET SDK：**8.0**
 - 插件项目：`src/Jellyfin.Plugin.PersonalRatings/Jellyfin.Plugin.PersonalRatings.csproj`
+- 当前 UI 覆盖：**Jellyfin Web MVP**
 
 ## 本地编译
 
@@ -65,52 +66,83 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 - 首次访问时会自动创建：
   - `user_item_ratings`
   - `delete_audit_logs`
+  - `tag_definitions`
+  - `user_item_tags`
 
 ## Web 端验证建议
 
 部署后建议按下面顺序验证：
 
 1. 打开 Jellyfin Web。
-2. 找一个可访问的视频或集合条目。
-3. 进入详情页，确认出现“个人评分”面板。
-4. 尝试打分、清分、标记待删除。
-5. 打开“我的评分库”：
+2. 确认顶栏出现“打分库”入口。
+3. 进入：
 
    ```text
-   #/configurationpage?name=PersonalRatingsManagePage
+   #/personalratings
    ```
 
-6. 验证分页加载、筛选和批量操作。
-7. 使用管理员账号验证物理删除。
-8. 打开删除审计页并确认能看到刚才的删除记录：
+4. 验证前台浏览页能正常加载卡片流。
+5. 切换海报视图 / 列表视图，确认页面能正常切换。
+6. 试用评分、播放状态、类型、排序、搜索等筛选。
+7. 如果已经存在标签定义，确认顶部标签 chips 能加载并参与筛选。
+8. 点击任意卡片，确认能跳回原始 Jellyfin 详情页。
+9. 在详情页确认出现统一操作区，并验证：
+   - 打分
+   - 待删除
+   - 标签占位交互
+10. 打开评分后台：
 
-   ```text
-   #/configurationpage?name=PersonalRatingsAuditPage
-   ```
+    ```text
+    #/configurationpage?name=PersonalRatingsManagePage
+    ```
 
-9. 确认数据库中出现 `delete_audit_logs` 记录。
+11. 验证分页加载、批量操作和后台入口仍可用。
+12. 使用管理员账号验证物理删除。
+13. 打开删除审计页并确认能看到刚才的删除记录：
+
+    ```text
+    #/configurationpage?name=PersonalRatingsAuditPage
+    ```
+
+14. 确认数据库中出现 `delete_audit_logs` 记录。
 
 ## 常见问题
 
-### 1. 详情页没有出现评分面板
+### 1. 顶栏没有出现“打分库”
 
 先确认：
 
 - 插件已经成功加载
 - 当前页面是新的 Jellyfin Web 页签，或已经手动刷新
-- 当前条目能被当前用户访问
+- 当前插件配置里的 `EnableManagePage` 为 `true`
 
-当前详情页 UI 是通过注入 Jellyfin Web 壳页面实现的，老页签在插件部署前已打开时，通常需要刷新一次。
+当前前台入口是通过 Jellyfin Web 壳页面注入实现的，老页签在插件部署前已打开时，通常需要刷新一次。
 
-### 2. 管理页能打开但没有记录
+### 2. 详情页没有出现统一操作区
 
 先确认：
 
-- 当前用户是否已经对某些条目打过分
+- 当前插件配置里的 `EnableDetailsPageInjection` 为 `true`
+- 当前页面已经刷新到新资源
+- 当前条目能被当前用户访问
+
+### 3. 打分库页面能打开但没有记录
+
+先确认：
+
+- 当前用户是否已经对某些条目打过分，或通过标签交互生成过关系记录
 - 查询条件是否过严
 - 当前条目是否对该用户可见
 
-### 3. 物理删除返回失败
+### 4. 标签区域为空
+
+先确认：
+
+- 当前是否已经创建启用中的标签定义
+- `GET /Plugins/PersonalRatings/tags` 是否正常返回
+- 当前用户是否能访问目标条目
+
+### 5. 物理删除返回失败
 
 先确认：
 
@@ -120,19 +152,12 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 - 目标条目是否仍存在
 - Jellyfin 本身是否有权删除底层媒体路径
 
-### 4. 管理页或审计页入口消失
+### 6. 打分库入口、评分后台或删除审计页一起消失
 
 先确认：
 
 - 当前插件配置里的 `EnableManagePage` 是否为 `true`
 - 当前页面是否已经刷新到新版本前端资源
-
-### 5. 详情页评分面板完全不注入
-
-先确认：
-
-- 当前插件配置里的 `EnableDetailsPageInjection` 是否为 `true`
-- 当前访问路径是否仍是 Jellyfin Web 壳页面 `/web/index.html`
 
 ## 升级注意事项
 
@@ -140,12 +165,14 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 - 升级到 10.11.x 之前，应重新核对：
   - `ILibraryManager.DeleteItem(...)`
   - Web 注入点
+  - 顶栏入口挂载点
   - 用户权限读取方式
 
 ## 当前验证基线
 
-当前仓库建议至少保留这 3 步作为每次修改后的快速验证：
+当前仓库建议至少保留这 4 步作为每次修改后的快速验证：
 
 - `dotnet build src/Jellyfin.Plugin.PersonalRatings/Jellyfin.Plugin.PersonalRatings.csproj`
 - `dotnet test tests/Jellyfin.Plugin.PersonalRatings.Tests/Jellyfin.Plugin.PersonalRatings.Tests.csproj`
-- 在本地 Jellyfin 10.10.7 Web 里手动验证详情页、管理页和删除审计页
+- 前台“打分库”页手动联调
+- 详情页统一操作区、评分后台页和删除审计页手动联调

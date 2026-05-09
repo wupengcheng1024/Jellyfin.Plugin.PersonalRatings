@@ -1,26 +1,16 @@
 # Jellyfin Personal Ratings
 
-`Jellyfin.PersonalRatings` 是一个面向 **Jellyfin 10.10.7** 的自定义插件，用来给当前登录用户提供私有评分、分级收藏、待删除标记和批量管理能力。
+`Jellyfin.PersonalRatings` 是一个面向 **Jellyfin 10.10.7** 的自定义插件，用来给当前登录用户提供私有评分、分级收藏、标签、待删除标记和批量管理能力。
 
-当前仓库已经完成阶段 0 ~ 6 的最小闭环：
-
-- 插件骨架、配置类和服务注册
-- SQLite 初始化与建表
-- 单条评分查询、设置、清除
-- 分页查询与批量评分/清分/待删除
-- 详情页评分 UI
-- “我的评分库”管理页
-- 管理员物理删除与删除审计日志
-- 删除审计查询 API 与简易审计页
-- 配置开关接线与删除链路自动化回归测试
+当前仓库已经完成阶段 0 ~ 6 的最小闭环，并在 v2 中把“打分库”主入口前移到 Jellyfin Web 顶栏。
 
 ## 当前范围
 
 - 目标 Jellyfin 版本：**10.10.7**
 - 目标运行时：**net8.0**
 - 主存储：**SQLite**
-- 当前 UI 范围：**Jellyfin Web**
-- 当前主流程：`看过 -> 评分 -> 筛选 -> 批量处理 -> 管理员物理删除`
+- 当前 UI 范围：**Jellyfin Web MVP**
+- 当前主流程：`浏览打分库 -> 评分/打标签 -> 筛选 -> 批量处理 -> 管理员物理删除`
 
 ## 核心能力
 
@@ -28,7 +18,9 @@
 - 清除评分后回到 `0 = 未评分`
 - 每个 `UserId + ItemId` 只保留一条有效评分记录
 - 支持待删除标记与取消待删除
-- 提供“我的评分库”管理页
+- 支持全局标签定义与用户条目标签关系
+- 提供前台“打分库”浏览页，支持海报视图 / 列表视图切换
+- 提供评分后台页与删除审计页
 - 支持分页、筛选、多选和批量操作
 - 只有管理员可以调用物理删除接口
 - 物理删除会写入 `delete_audit_logs`
@@ -86,16 +78,23 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 
 ## Web 入口
 
-- 插件配置页：`PersonalRatingsConfigPage`
-- 管理页：`#/configurationpage?name=PersonalRatingsManagePage`
+- 前台主入口：Jellyfin Web 顶栏“打分库”
+- 前台路由：`#/personalratings`
+- 配置页：`PersonalRatingsConfigPage`
+- 评分后台页：`#/configurationpage?name=PersonalRatingsManagePage`
 - 删除审计页：`#/configurationpage?name=PersonalRatingsAuditPage`
-- 详情页评分 UI：通过插件中间件向 Jellyfin Web 壳页面注入 `details-rating.js`
+- 详情页统一操作区：通过插件中间件向 Jellyfin Web 壳页面注入 `details-rating.js`
+
+当前入口语义：
+
+- “打分库”是主浏览入口，面向日常评分、筛选和卡片浏览
+- `configurationpage` 仅保留后台管理与审计用途，不再作为主入口
 
 当前配置开关行为：
 
 - `EnableDeleteFeature=false` 时，前端隐藏物理删除入口，后端 `delete-physical` 会直接阻断
 - `EnableDetailsPageInjection=false` 时，不再注入 `details-rating.js`
-- `EnableManagePage=false` 时，不再暴露管理页和删除审计页入口，相关前端资源也不会继续提供
+- `EnableManagePage=false` 时，不再注入前台“打分库”入口，也不再暴露评分后台页、删除审计页及其相关前端资源
 - `RequireAdminForPhysicalDelete` 仅保留为兼容字段，不会重新放开普通用户物理删除
 
 ## 数据存储
@@ -112,6 +111,19 @@ SQLite 数据库路径通过 Jellyfin `IApplicationPaths.DataPath` 计算，不�
 
 - `user_item_ratings`
 - `delete_audit_logs`
+- `tag_definitions`
+- `user_item_tags`
+
+## 当前 API 覆盖
+
+- 单条评分查询 / 设置 / 清除
+- `ratings/query` 分页查询
+- 批量评分 / 清分 / 待删除 / 物理删除
+- 批量添加标签 / 移除标签
+- 标签定义管理 API
+- 单条条目标签查询 / 覆盖写入 API
+- 删除审计分页查询 API
+- 功能开关快照 API
 
 ## 文档索引
 
@@ -122,4 +134,12 @@ SQLite 数据库路径通过 Jellyfin `IApplicationPaths.DataPath` 计算，不�
 
 ## 当前交付结论
 
-当前仓库适合作为 **Jellyfin 10.10.7 Web MVP** 继续迭代，并且已经具备删除链路自动化回归测试、删除审计查询 API 和基础审计页。但它仍不应被视为“所有边界都已经完全收口”的正式稳定版，发布前请先阅读 [`docs/KNOWN_BOUNDARIES.md`](docs/KNOWN_BOUNDARIES.md)。
+当前仓库适合作为 **Jellyfin 10.10.7 Web MVP** 继续迭代，当前主入口已经切到前台“打分库”，并补上了标签一期的表结构与基础 API。
+
+同时需要明确：
+
+- 只支持 **Jellyfin 10.10.7**
+- 只覆盖 **Web MVP**
+- 大数据量下，部分元数据筛选和排序仍存在内存回退路径
+
+发布前请先阅读 [`docs/KNOWN_BOUNDARIES.md`](docs/KNOWN_BOUNDARIES.md)。

@@ -21,12 +21,14 @@ public sealed class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddHostedService<DatabaseInitializationHostedService>();
 
         serviceCollection.AddScoped<IRatingRepository, RatingRepository>();
+        serviceCollection.AddScoped<ITagRepository, TagRepository>();
         serviceCollection.AddScoped<IDeleteAuditLogRepository, DeleteAuditLogRepository>();
         serviceCollection.AddScoped<IJellyfinItemResolver, JellyfinItemResolver>();
         serviceCollection.AddScoped<IJellyfinDeletionAdapter, JellyfinDeletionAdapter>();
         serviceCollection.AddSingleton<IPluginFeatureService, PluginFeatureService>();
         serviceCollection.AddScoped<IAuditLogService, AuditLogService>();
         serviceCollection.AddScoped<IRatingService, RatingService>();
+        serviceCollection.AddScoped<ITagService, TagService>();
         serviceCollection.AddScoped<IDeletionService, DeletionService>();
         serviceCollection.AddSingleton<Microsoft.AspNetCore.Hosting.IStartupFilter, PersonalRatingsWebStartupFilter>();
     }

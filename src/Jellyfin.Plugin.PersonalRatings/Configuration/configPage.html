@@ -9,11 +9,11 @@
         <div data-role="content">
             <div class="content-primary" style="max-width: 860px;">
                 <h1>Jellyfin Personal Ratings</h1>
-                <p id="personalRatingsConfigIntro">当前插件提供 Jellyfin Web MVP：详情页打分、清分、待删除切换，以及“我的评分库”分页管理入口。</p>
+                <p id="personalRatingsConfigIntro">当前插件的主入口已经前移到 Jellyfin Web 顶栏“打分库”。这里保留后台管理页、删除审计和插件级说明。</p>
                 <p id="personalRatingsConfigStatusText">正在读取功能开关状态...</p>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
                     <button is="emby-button" type="button" class="raised button-submit" id="openManagePageButton">
-                        <span>打开我的评分库</span>
+                        <span>打开评分后台</span>
                     </button>
                     <button is="emby-button" type="button" class="button-flat" id="copyManageUrlButton">
                         <span>复制页面路由</span>
@@ -59,11 +59,11 @@
                 }).then(function (result) {
                     var manageEnabled = !!(result && result.IsManagePageEnabled);
                     if (manageEnabled) {
-                        statusText.textContent = '当前已启用“我的评分库”页面入口；删除审计入口会在管理员进入管理页后显示。';
+                        statusText.textContent = '当前已启用前台“打分库”入口；这里保留评分后台和删除审计等次级入口。';
                         return;
                     }
 
-                    statusText.textContent = '当前配置已禁用“我的评分库”页面入口。';
+                    statusText.textContent = '当前配置已禁用“打分库 / 评分后台”入口。';
                     openButton.hidden = true;
                     copyButton.hidden = true;
                     routeText.textContent = '管理页已禁用';

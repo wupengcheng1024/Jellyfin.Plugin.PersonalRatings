@@ -1,0 +1,353 @@
+.personalRatingsBrowsePage {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: none;
+    z-index: 4;
+    padding: 18px 24px 32px;
+    background:
+        radial-gradient(circle at top left, rgba(216, 139, 47, 0.2), transparent 28%),
+        linear-gradient(180deg, rgba(9, 13, 19, 0.98), rgba(12, 17, 24, 0.98));
+}
+
+.personalRatingsBrowsePage.is-active {
+    display: block;
+}
+
+.personalRatingsBrowseLayout {
+    display: grid;
+    gap: 18px;
+}
+
+.personalRatingsBrowseHero,
+.personalRatingsBrowsePanel {
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 46%),
+        rgba(17, 24, 32, 0.9);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.personalRatingsBrowseHero {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 24px 26px;
+}
+
+.personalRatingsBrowseEyebrow {
+    margin: 0 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.64);
+}
+
+.personalRatingsBrowseHero h1 {
+    margin: 0;
+    font-size: 34px;
+    line-height: 1.02;
+}
+
+.personalRatingsBrowseHero p {
+    margin: 12px 0 0;
+    max-width: 760px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.74);
+}
+
+.personalRatingsBrowseHeroActions,
+.personalRatingsBrowseToolbar,
+.personalRatingsBrowseToolbarGroup,
+.personalRatingsBrowseStatus,
+.personalRatingsBrowsePagination,
+.personalRatingsBrowseViewToggle,
+.personalRatingsBrowseTagFilters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.personalRatingsBrowseHeroActions {
+    justify-content: flex-end;
+}
+
+.personalRatingsBrowsePanel {
+    padding: 18px 20px;
+}
+
+.personalRatingsBrowseToolbar {
+    justify-content: space-between;
+}
+
+.personalRatingsBrowseField {
+    display: grid;
+    gap: 8px;
+    min-width: 120px;
+}
+
+.personalRatingsBrowseField span,
+.personalRatingsBrowseTagHeader,
+.personalRatingsBrowseSummaryText,
+.personalRatingsBrowseStatusText,
+.personalRatingsBrowsePageText {
+    color: rgba(255, 255, 255, 0.68);
+}
+
+.personalRatingsBrowseField span,
+.personalRatingsBrowseTagHeader {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+}
+
+.personalRatingsBrowseSearchForm {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.personalRatingsBrowseTagFilters {
+    min-height: 40px;
+}
+
+.personalRatingsBrowseTagChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.82);
+    cursor: pointer;
+}
+
+.personalRatingsBrowseTagChip.is-active {
+    color: #fff;
+    border-color: rgba(216, 139, 47, 0.45);
+    box-shadow: inset 0 0 0 1px rgba(216, 139, 47, 0.28);
+}
+
+.personalRatingsBrowseViewButton.is-active {
+    background: rgba(216, 139, 47, 0.18);
+    border-color: rgba(216, 139, 47, 0.36);
+    color: #fff2e3;
+}
+
+.personalRatingsBrowseStatus {
+    justify-content: space-between;
+}
+
+.personalRatingsBrowseStatusText.is-error {
+    color: #ff9a8c;
+}
+
+.personalRatingsBrowseStatusText.is-success {
+    color: #9ae1b2;
+}
+
+.personalRatingsBrowseStatusText.is-loading {
+    color: #f0c28b;
+}
+
+.personalRatingsBrowseResults.is-list .personalRatingsBrowseCards {
+    display: grid;
+    gap: 14px;
+}
+
+.personalRatingsBrowseCards {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.personalRatingsBrowseResults.is-list .personalRatingsBrowseCards {
+    grid-template-columns: 1fr;
+}
+
+.personalRatingsCardLink {
+    color: inherit;
+    text-decoration: none;
+}
+
+.personalRatingsCard {
+    height: 100%;
+    display: grid;
+    gap: 12px;
+}
+
+.personalRatingsPoster {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    border-radius: 16px;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+        rgba(20, 28, 38, 0.92);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+.personalRatingsPosterImage {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.personalRatingsPosterOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(8, 12, 18, 0.08), rgba(8, 12, 18, 0.82));
+}
+
+.personalRatingsPosterBadges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.personalRatingsBadgeStack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.personalRatingsScoreBadge,
+.personalRatingsStateBadge,
+.personalRatingsCardTag,
+.personalRatingsEmptyTag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.personalRatingsScoreBadge {
+    background: rgba(216, 139, 47, 0.88);
+    color: #fff8ef;
+    font-weight: 700;
+}
+
+.personalRatingsStateBadge {
+    background: rgba(255, 107, 107, 0.88);
+    color: #fff3f3;
+}
+
+.personalRatingsCardBody {
+    display: grid;
+    gap: 6px;
+}
+
+.personalRatingsCardTitle {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+.personalRatingsCardMeta {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 13px;
+}
+
+.personalRatingsCardTags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.personalRatingsCardTag {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.personalRatingsEmptyTag {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.52);
+}
+
+.personalRatingsBrowseResults.is-list .personalRatingsCardLink {
+    display: block;
+}
+
+.personalRatingsBrowseResults.is-list .personalRatingsCard {
+    grid-template-columns: 120px minmax(0, 1fr);
+    align-items: stretch;
+    gap: 16px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.personalRatingsBrowseResults.is-list .personalRatingsPoster {
+    aspect-ratio: 2 / 3;
+    min-height: 180px;
+}
+
+.personalRatingsBrowseEmpty {
+    padding: 32px 14px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.64);
+}
+
+.personalRatingsBrowsePagination {
+    justify-content: space-between;
+    margin-top: 12px;
+}
+
+.personalRatingsNavTab {
+    position: relative;
+}
+
+.personalRatingsNavTab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 999px;
+    background: rgba(216, 139, 47, 0.9);
+}
+
+@media (max-width: 920px) {
+    .personalRatingsBrowsePage {
+        padding: 14px 14px 28px;
+    }
+
+    .personalRatingsBrowseHero,
+    .personalRatingsBrowseToolbar,
+    .personalRatingsBrowseStatus,
+    .personalRatingsBrowsePagination {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .personalRatingsBrowseSearchForm,
+    .personalRatingsBrowseToolbarGroup,
+    .personalRatingsBrowseHeroActions {
+        align-items: stretch;
+    }
+
+    .personalRatingsBrowseCards {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    .personalRatingsBrowseResults.is-list .personalRatingsCard {
+        grid-template-columns: 96px minmax(0, 1fr);
+    }
+}

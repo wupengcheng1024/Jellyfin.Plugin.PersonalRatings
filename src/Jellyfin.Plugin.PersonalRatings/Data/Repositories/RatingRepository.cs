@@ -241,6 +241,58 @@ internal sealed class RatingRepository : IRatingRepository
         return await GetManyAsync(userId, itemIds, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<UserItemRating>> EnsureRowsAsync(Guid userId, IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken)
+    {
+        if (itemIds.Count == 0)
+        {
+            return Array.Empty<UserItemRating>();
+        }
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string nowText = FormatDate(now);
+
+        await using SqliteConnection connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using SqliteTransaction transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (Guid itemId in itemIds)
+        {
+            await using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                INSERT INTO user_item_ratings (
+                    user_id,
+                    item_id,
+                    score,
+                    is_pending_delete,
+                    last_played_at,
+                    rated_at,
+                    updated_at,
+                    created_at
+                )
+                VALUES (
+                    @userId,
+                    @itemId,
+                    0,
+                    0,
+                    NULL,
+                    NULL,
+                    @updatedAt,
+                    @createdAt
+                )
+                ON CONFLICT(user_id, item_id) DO NOTHING;
+                """;
+            command.Parameters.AddWithValue("@userId", userId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@itemId", itemId.ToString("D", CultureInfo.InvariantCulture));
+            command.Parameters.AddWithValue("@updatedAt", nowText);
+            command.Parameters.AddWithValue("@createdAt", nowText);
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return await GetManyAsync(userId, itemIds, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<UserItemRating>> SetPendingDeleteAsync(Guid userId, IReadOnlyList<Guid> itemIds, bool isPendingDelete, CancellationToken cancellationToken)
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -436,6 +488,35 @@ internal sealed class RatingRepository : IRatingRepository
             parameters.Add(new SqliteParameter("@ratedBeforeUtc", FormatDate(request.RatedBeforeUtc.Value)));
         }
 
+        if (request.TagIds.Count > 0)
+        {
+            List<string> tagParameterNames = [];
+            for (int index = 0; index < request.TagIds.Count; index++)
+            {
+                string parameterName = "@tagFilter" + index.ToString(CultureInfo.InvariantCulture);
+                tagParameterNames.Add(parameterName);
+                parameters.Add(new SqliteParameter(parameterName, request.TagIds[index]));
+            }
+
+            if (string.Equals(request.TagMatchMode, "all", StringComparison.OrdinalIgnoreCase))
+            {
+                builder.Append(" AND (SELECT COUNT(DISTINCT uit.tag_id) FROM user_item_tags uit");
+                builder.Append(" WHERE uit.user_id = @userId AND uit.item_id = user_item_ratings.item_id");
+                builder.Append(" AND uit.tag_id IN (");
+                builder.Append(string.Join(", ", tagParameterNames));
+                builder.Append(")) = @tagFilterCount");
+                parameters.Add(new SqliteParameter("@tagFilterCount", request.TagIds.Count));
+            }
+            else
+            {
+                builder.Append(" AND EXISTS (SELECT 1 FROM user_item_tags uit");
+                builder.Append(" WHERE uit.user_id = @userId AND uit.item_id = user_item_ratings.item_id");
+                builder.Append(" AND uit.tag_id IN (");
+                builder.Append(string.Join(", ", tagParameterNames));
+                builder.Append("))");
+            }
+        }
+
         return builder.ToString();
     }
 
@@ -500,7 +581,7 @@ internal sealed class RatingRepository : IRatingRepository
         return value.ToString("O", CultureInfo.InvariantCulture);
     }
 
-    private async Task<IReadOnlyList<UserItemRating>> GetManyAsync(Guid userId, IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<UserItemRating>> GetManyAsync(Guid userId, IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken)
     {
         if (itemIds.Count == 0)
         {

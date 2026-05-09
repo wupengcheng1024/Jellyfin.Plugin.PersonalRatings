@@ -35,6 +35,8 @@
 
   <ItemGroup>
     <None Remove="Configuration\configPage.html" />
+    <None Remove="Web\browse-page.css" />
+    <None Remove="Web\browse-shell.js" />
     <None Remove="Web\details-rating.js" />
     <None Remove="Web\audit-page.html" />
     <None Remove="Web\audit-page.js" />
@@ -42,6 +44,8 @@
     <None Remove="Web\manage-page.html" />
     <None Remove="Web\manage-page.js" />
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Web\browse-page.css" />
+    <EmbeddedResource Include="Web\browse-shell.js" />
     <EmbeddedResource Include="Web\details-rating.js" />
     <EmbeddedResource Include="Web\audit-page.html" />
     <EmbeddedResource Include="Web\audit-page.js" />

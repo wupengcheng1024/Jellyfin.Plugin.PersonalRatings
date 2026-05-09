@@ -64,4 +64,9 @@ public sealed class RatingResponse
     /// Gets or sets the production year.
     /// </summary>
     public int? ProductionYear { get; set; }
+
+    /// <summary>
+    /// Gets or sets the assigned tags.
+    /// </summary>
+    public IReadOnlyList<TagReferenceResponse> Tags { get; set; } = Array.Empty<TagReferenceResponse>();
 }

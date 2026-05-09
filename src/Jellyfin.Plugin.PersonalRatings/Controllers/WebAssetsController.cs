@@ -45,6 +45,36 @@ public sealed class WebAssetsController : ControllerBase
     }
 
     /// <summary>
+    /// Gets the injected front-end browse-page shell script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("browse-shell.js")]
+    public ActionResult GetBrowseShellScript()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("browse-shell.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the front-end browse-page stylesheet.
+    /// </summary>
+    /// <returns>The stylesheet asset.</returns>
+    [HttpGet("browse-page.css")]
+    public ActionResult GetBrowsePageStyles()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("browse-page.css", "text/css; charset=utf-8");
+    }
+
+    /// <summary>
     /// Gets the management page script.
     /// </summary>
     /// <returns>The JavaScript asset.</returns>

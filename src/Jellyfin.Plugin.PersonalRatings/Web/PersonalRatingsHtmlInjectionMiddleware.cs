@@ -41,7 +41,7 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
     /// <returns>A task that completes when the response is written.</returns>
     public async Task InvokeAsync(HttpContext httpContext)
     {
-        if (!_featureService.IsDetailsPageInjectionEnabled)
+        if (!_featureService.IsDetailsPageInjectionEnabled && !_featureService.IsManagePageEnabled)
         {
             await _next(httpContext).ConfigureAwait(false);
             return;
@@ -83,7 +83,7 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
                 return;
             }
 
-            string updatedHtml = InjectScript(html, BuildScriptTag());
+            string updatedHtml = InjectScripts(html, BuildScriptTags());
             byte[] encodedHtml = await EncodeHtmlAsync(updatedHtml, contentEncoding, httpContext.RequestAborted).ConfigureAwait(false);
 
             RemoveStaleStaticFileHeaders(httpContext.Response);
@@ -142,42 +142,73 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
             && contentType.Contains("text/html", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string InjectScript(string html, string scriptTag)
+    private static string InjectScripts(string html, IReadOnlyList<string> scriptTags)
     {
-        if (html.Contains(scriptTag, StringComparison.Ordinal))
+        if (scriptTags.Count == 0)
         {
             return html;
         }
 
-        int bodyIndex = html.IndexOf("</body>", StringComparison.OrdinalIgnoreCase);
-        if (bodyIndex >= 0)
+        string injectedHtml = html;
+        foreach (string scriptTag in scriptTags)
         {
-            return html.Insert(bodyIndex, scriptTag);
+            if (injectedHtml.Contains(scriptTag, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            int bodyIndex = injectedHtml.IndexOf("</body>", StringComparison.OrdinalIgnoreCase);
+            if (bodyIndex >= 0)
+            {
+                injectedHtml = injectedHtml.Insert(bodyIndex, scriptTag);
+                continue;
+            }
+
+            int headIndex = injectedHtml.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
+            if (headIndex >= 0)
+            {
+                injectedHtml = injectedHtml.Insert(headIndex, scriptTag);
+                continue;
+            }
+
+            injectedHtml += scriptTag;
         }
 
-        int headIndex = html.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
-        if (headIndex >= 0)
-        {
-            return html.Insert(headIndex, scriptTag);
-        }
-
-        return html + scriptTag;
+        return injectedHtml;
     }
 
-    private static string BuildScriptTag()
+    private IReadOnlyList<string> BuildScriptTags()
     {
+        List<string> scriptTags = [];
         string versionToken = Plugin.Instance?.WebAssetVersionToken ?? "0";
+
+        if (_featureService.IsManagePageEnabled)
+        {
+            scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/browse-shell.js?v=", versionToken));
+        }
+
+        if (_featureService.IsDetailsPageInjectionEnabled)
+        {
+            scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/details-rating.js?v=", versionToken));
+        }
+
+        return scriptTags;
+    }
+
+    private static string BuildScriptTag(string pathPrefix, string versionToken)
+    {
         return string.Create(
-            95 + versionToken.Length,
-            versionToken,
-            static (buffer, token) =>
+            40 + pathPrefix.Length + versionToken.Length,
+            (PathPrefix: pathPrefix, VersionToken: versionToken),
+            static (buffer, state) =>
             {
-                string prefix = "<script defer src=\"/Plugins/PersonalRatings/web/details-rating.js?v=";
+                string prefix = "<script defer src=\"";
                 string suffix = "\"></script>";
 
                 prefix.AsSpan().CopyTo(buffer);
-                token.AsSpan().CopyTo(buffer[prefix.Length..]);
-                suffix.AsSpan().CopyTo(buffer[(prefix.Length + token.Length)..]);
+                state.PathPrefix.AsSpan().CopyTo(buffer[prefix.Length..]);
+                state.VersionToken.AsSpan().CopyTo(buffer[(prefix.Length + state.PathPrefix.Length)..]);
+                suffix.AsSpan().CopyTo(buffer[(prefix.Length + state.PathPrefix.Length + state.VersionToken.Length)..]);
             });
     }
 

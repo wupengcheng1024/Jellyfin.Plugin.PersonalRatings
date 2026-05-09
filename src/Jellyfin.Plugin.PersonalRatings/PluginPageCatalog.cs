@@ -26,7 +26,7 @@ internal static class PluginPageCatalog
             pages.Add(new PluginPageInfo
             {
                 Name = "PersonalRatingsManagePage",
-                DisplayName = "我的评分库",
+                DisplayName = "评分后台",
                 EmbeddedResourcePath = string.Format(
                     CultureInfo.InvariantCulture,
                     "{0}.Web.manage-page.html",

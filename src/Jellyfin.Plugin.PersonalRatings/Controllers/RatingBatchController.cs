@@ -17,6 +17,7 @@ namespace Jellyfin.Plugin.PersonalRatings.Controllers;
 [Route("Plugins/PersonalRatings/ratings/batch")]
 public sealed class RatingBatchController : ControllerBase
 {
+    private readonly ITagService _tagService;
     private readonly ILogger<RatingBatchController> _logger;
     private readonly IDeletionService _deletionService;
     private readonly IRatingService _ratingService;
@@ -28,10 +29,12 @@ public sealed class RatingBatchController : ControllerBase
     /// <param name="logger">The logger.</param>
     public RatingBatchController(
         IRatingService ratingService,
+        ITagService tagService,
         IDeletionService deletionService,
         ILogger<RatingBatchController> logger)
     {
         _ratingService = ratingService;
+        _tagService = tagService;
         _deletionService = deletionService;
         _logger = logger;
     }
@@ -174,6 +177,38 @@ public sealed class RatingBatchController : ControllerBase
     }
 
     /// <summary>
+    /// Adds tags to many items.
+    /// </summary>
+    /// <param name="request">The batch tag request.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The batch operation response.</returns>
+    [HttpPost("add-tags")]
+    [ProducesResponseType<BatchOperationResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BatchOperationResponse>> AddTags([FromBody] BatchTagRequest request, CancellationToken cancellationToken)
+    {
+        return await UpdateTagsAsync(request, true, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Removes tags from many items.
+    /// </summary>
+    /// <param name="request">The batch tag request.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The batch operation response.</returns>
+    [HttpPost("remove-tags")]
+    [ProducesResponseType<BatchOperationResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BatchOperationResponse>> RemoveTags([FromBody] BatchTagRequest request, CancellationToken cancellationToken)
+    {
+        return await UpdateTagsAsync(request, false, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Physically deletes many items. This endpoint is restricted to administrators when the plugin is configured to require admin deletion.
     /// </summary>
     /// <param name="request">The physical delete request.</param>
@@ -271,6 +306,50 @@ public sealed class RatingBatchController : ControllerBase
         {
             _logger.LogError(exception, "Unexpected error while updating pending delete in batch for user {UserId}", userId);
             return Problem(title: "Failed to update pending-delete state in batch.", statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    private async Task<ActionResult<BatchOperationResponse>> UpdateTagsAsync(
+        BatchTagRequest request,
+        bool addTags,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        if (!TryGetUserId(out Guid userId))
+        {
+            return Unauthorized();
+        }
+
+        if (!TryParseItemIds(request.ItemIds, out IReadOnlyList<Guid> itemIds, out ActionResult? errorResult))
+        {
+            return errorResult!;
+        }
+
+        try
+        {
+            BatchOperationResponse response = addTags
+                ? await _tagService.BatchAddTagsAsync(userId, itemIds, request.TagIds, cancellationToken).ConfigureAwait(false)
+                : await _tagService.BatchRemoveTagsAsync(userId, itemIds, request.TagIds, cancellationToken).ConfigureAwait(false);
+            return Ok(response);
+        }
+        catch (ArgumentException exception)
+        {
+            _logger.LogWarning(exception, "Rejected batch tag request for user {UserId}", userId);
+            return BadRequest(exception.Message);
+        }
+        catch (ItemNotFoundException exception)
+        {
+            _logger.LogWarning(exception, "Batch tag request contained an inaccessible item for user {UserId}", userId);
+            return NotFound(exception.Message);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Unexpected error while updating tags in batch for user {UserId}", userId);
+            return Problem(title: "Failed to update tags in batch.", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 

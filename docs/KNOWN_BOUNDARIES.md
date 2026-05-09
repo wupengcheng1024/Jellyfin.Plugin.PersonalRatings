@@ -11,14 +11,16 @@
 - `ILibraryManager.DeleteItem(...)`
 - Jellyfin Web 壳页面注入方式
 - 当前用户权限读取
+- 顶栏入口挂载点
 - 详情页 DOM 注入点
 
 ## 2. 当前只覆盖 Jellyfin Web MVP
 
 已实现的 UI 只覆盖 Jellyfin Web：
 
-- 详情页评分面板
-- “我的评分库”管理页
+- 前台“打分库”浏览页
+- 详情页统一操作区
+- 评分后台页
 - 删除审计页
 
 当前不覆盖：
@@ -47,7 +49,7 @@
 
 - `EnableDeleteFeature=false` 会隐藏前端删除入口，并阻断后端物理删除接口
 - `EnableDetailsPageInjection=false` 会停止详情页注入
-- `EnableManagePage=false` 会隐藏管理页与删除审计页入口，并停止相关静态资源暴露
+- `EnableManagePage=false` 会隐藏前台“打分库”入口、评分后台页和删除审计页入口，并停止相关静态资源暴露
 
 当前仍未处理的字段包括：
 
@@ -112,32 +114,59 @@
 
 这在 MVP 阶段是可接受的，但在更大数据量下需要进一步优化。
 
-## 9. 管理页和删除审计页仍然借用 Jellyfin 配置页壳
+## 9. 前台“打分库”依赖 Jellyfin Web 壳注入
 
-当前“我的评分库”和“删除审计”页面都是通过：
+当前主入口虽然已经从配置页转到前台顶栏，但它仍然不是 Jellyfin 内建的原生模块，而是通过注入脚本挂到现有 Web 壳结构上。
 
-```text
-#/configurationpage?name=PersonalRatingsManagePage
-#/configurationpage?name=PersonalRatingsAuditPage
-```
+当前依赖点包括：
 
-挂进 Jellyfin Web 的配置页壳里，而不是一个完全独立的新路由模块。
+- `.headerTabs`
+- `.mainAnimatedPages`
+- `#/details`
 
 优点：
 
-- 兼容性较稳
-- 插件集成成本低
+- 主入口已经更接近日常浏览路径
+- 能复用现有评分查询与详情页能力
 
 代价：
 
-- 页面入口仍偏“插件页面”而不是“产品主页”
-- 部分前端行为还依赖 Jellyfin 当前壳结构
+- 仍受 Jellyfin 10.10.7 Web 壳 DOM 结构影响
+- 升级到新版本前必须重新回归顶栏注入与页面挂载
 
-## 10. 部署后旧页签通常需要刷新
+## 10. 评分后台页和删除审计页仍然借用 configurationpage 壳
 
-详情页评分 UI 是通过 Web 壳页面注入脚本实现的。对于插件安装前已经打开的 Jellyfin Web 页签，通常需要手动刷新一次，才能拿到新注入的前端逻辑。
+当前 `#/configurationpage?name=PersonalRatingsManagePage` 与 `#/configurationpage?name=PersonalRatingsAuditPage` 仍然保留，但它们现在只作为后台页，不再是产品主入口。
 
-## 11. 当前已有基础自动化测试，但覆盖率仍有限
+这意味着：
+
+- 日常浏览应走前台“打分库”
+- 后台页仍然依赖 Jellyfin 配置页壳结构
+
+## 11. 标签功能目前是一期开口
+
+当前已经实现：
+
+- `tag_definitions`
+- `user_item_tags`
+- 标签定义 API
+- 单条条目标签 API
+- 批量加标签 / 移除标签
+- `ratings/query` 的 `tagIds` 与 `tagMatchMode`
+- 详情页标签占位交互
+- 前台浏览页标签筛选 chips
+
+当前仍未完全收口：
+
+- 评分后台页还没有完整的标签管理界面
+- 标签定义目前是全局共享，而不是按用户隔离
+- 卡片上的标签 chips 仍偏 MVP 呈现
+
+## 12. 部署后旧页签通常需要刷新
+
+前台“打分库”入口和详情页统一操作区都通过 Web 壳页面注入脚本实现。对于插件安装前已经打开的 Jellyfin Web 页签，通常需要手动刷新一次，才能拿到新注入的前端逻辑。
+
+## 13. 当前已有基础自动化测试，但覆盖率仍有限
 
 仓库里现在已经有正式测试项目，当前主要覆盖：
 
@@ -148,6 +177,7 @@
 当前仍然没有完整覆盖：
 
 - SQLite Repository 的真实查询与写入行为
+- 标签关系查询的真实数据库级测试
 - Web 前端交互的端到端自动化
 - 本地 Jellyfin 10.10.7 真实运行时的完整集成回归
 

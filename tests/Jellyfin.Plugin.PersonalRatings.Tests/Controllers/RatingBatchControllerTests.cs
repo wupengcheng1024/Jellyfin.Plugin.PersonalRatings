@@ -18,6 +18,7 @@ public sealed class RatingBatchControllerTests
         Guid userId = Guid.NewGuid();
         Guid itemId = Guid.NewGuid();
         Mock<IRatingService> ratingService = new(MockBehavior.Strict);
+        Mock<ITagService> tagService = new(MockBehavior.Strict);
         Mock<IDeletionService> deletionService = new(MockBehavior.Strict);
         deletionService
             .Setup(service => service.DeleteItemsAsync(
@@ -29,6 +30,7 @@ public sealed class RatingBatchControllerTests
 
         RatingBatchController controller = new(
             ratingService.Object,
+            tagService.Object,
             deletionService.Object,
             NullLogger<RatingBatchController>.Instance);
         controller.ControllerContext = new ControllerContext

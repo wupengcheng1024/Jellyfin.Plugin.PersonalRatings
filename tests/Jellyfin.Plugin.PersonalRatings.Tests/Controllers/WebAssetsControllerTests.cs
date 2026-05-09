@@ -36,5 +36,7 @@ public sealed class WebAssetsControllerTests
         Assert.IsType<NotFoundResult>(controller.GetManagePageScript());
         Assert.IsType<NotFoundResult>(controller.GetManagePageStyles());
         Assert.IsType<NotFoundResult>(controller.GetAuditPageScript());
+        Assert.IsType<NotFoundResult>(controller.GetBrowseShellScript());
+        Assert.IsType<NotFoundResult>(controller.GetBrowsePageStyles());
     }
 }

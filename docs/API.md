@@ -11,6 +11,7 @@
 - 评分取值：
   - `0` 表示未评分
   - `1~5` 表示有效评分
+- 标签定义是全局共享维度；标签关系按 `UserId + ItemId + TagId` 存储
 
 ## 单条评分接口
 
@@ -33,7 +34,14 @@
   "ItemName": "Example Item",
   "MediaType": "Video",
   "ItemType": "Movie",
-  "ProductionYear": 2024
+  "ProductionYear": 2024,
+  "Tags": [
+    {
+      "Id": 1,
+      "Name": "重看",
+      "Color": "#d88b2f"
+    }
+  ]
 }
 ```
 
@@ -79,7 +87,7 @@
 
 ### `POST /Plugins/PersonalRatings/ratings/query`
 
-用于“我的评分库”管理页的分页查询。
+用于前台“打分库”浏览页和评分后台页的分页查询。
 
 请求体字段：
 
@@ -91,6 +99,8 @@
   "isPendingDelete": false,
   "libraryIds": [],
   "mediaTypes": [],
+  "tagIds": [1, 2],
+  "tagMatchMode": "any",
   "year": 2024,
   "addedAfterUtc": null,
   "addedBeforeUtc": null,
@@ -112,12 +122,19 @@
 - `isPendingDelete`
 - `libraryIds`
 - `mediaTypes`
+- `tagIds`
+- `tagMatchMode`
 - `year`
 - `addedAfterUtc`
 - `addedBeforeUtc`
 - `ratedAfterUtc`
 - `ratedBeforeUtc`
 - `keyword`
+
+`tagMatchMode` 当前支持：
+
+- `any`
+- `all`
 
 当前支持的主要排序字段：
 
@@ -147,7 +164,14 @@
       "ItemName": "Example Item",
       "MediaType": "Video",
       "ItemType": "Movie",
-      "ProductionYear": 2024
+      "ProductionYear": 2024,
+      "Tags": [
+        {
+          "Id": 1,
+          "Name": "重看",
+          "Color": "#d88b2f"
+        }
+      ]
     }
   ],
   "TotalCount": 1,
@@ -228,6 +252,38 @@
     "guid-1",
     "guid-2"
   ]
+}
+```
+
+### `POST /add-tags`
+
+批量为当前用户的条目增加标签。
+
+请求体：
+
+```json
+{
+  "itemIds": [
+    "guid-1",
+    "guid-2"
+  ],
+  "tagIds": [1, 2]
+}
+```
+
+### `POST /remove-tags`
+
+批量为当前用户的条目移除标签。
+
+请求体：
+
+```json
+{
+  "itemIds": [
+    "guid-1",
+    "guid-2"
+  ],
+  "tagIds": [1]
 }
 ```
 
@@ -314,19 +370,121 @@
 - `AffectedCount`
 - `Items`
 
-## 插件 Web 资源接口
+`Items` 中的单条记录当前会包含：
 
-这些接口主要给 Jellyfin Web 壳页面和插件管理页使用，不建议当作外部业务 API 依赖。
+- 评分状态
+- 待删除状态
+- 元数据摘要
+- 当前标签列表
 
-- `GET /Plugins/PersonalRatings/web/details-rating.js`
-- `GET /Plugins/PersonalRatings/web/manage-page.js`
-- `GET /Plugins/PersonalRatings/web/manage-page.css`
-- `GET /Plugins/PersonalRatings/web/audit-page.js`
+## 标签定义管理接口
 
-开关行为：
+### `GET /Plugins/PersonalRatings/tags`
 
-- 当 `EnableDetailsPageInjection = false` 时，`details-rating.js` 不再注入，且资源接口返回 `404`
-- 当 `EnableManagePage = false` 时，管理页和审计页相关资源接口返回 `404`
+查询标签定义。
+
+查询参数：
+
+- `includeDisabled`
+
+说明：
+
+- 默认 `includeDisabled=false`
+- 当前登录用户可读取启用中的标签定义
+- `includeDisabled=true` 默认只允许管理员
+
+成功返回示例：
+
+```json
+[
+  {
+    "Id": 1,
+    "Name": "重看",
+    "Color": "#d88b2f",
+    "SortOrder": 10,
+    "IsEnabled": true,
+    "CreatedAt": "2026-05-09T01:00:00.0000000+00:00",
+    "UpdatedAt": "2026-05-09T01:00:00.0000000+00:00"
+  }
+]
+```
+
+### `POST /Plugins/PersonalRatings/tags`
+
+创建标签定义。当前默认只允许管理员。
+
+请求体：
+
+```json
+{
+  "name": "重看",
+  "color": "#d88b2f",
+  "sortOrder": 10,
+  "isEnabled": true
+}
+```
+
+### `PUT /Plugins/PersonalRatings/tags/{id}`
+
+更新标签定义。当前默认只允许管理员。
+
+请求体：
+
+```json
+{
+  "name": "年度候选",
+  "color": "#7aa1d2",
+  "sortOrder": 20,
+  "isEnabled": true
+}
+```
+
+### `DELETE /Plugins/PersonalRatings/tags/{id}`
+
+删除标签定义。当前默认只允许管理员。
+
+说明：
+
+- 删除标签定义时，会同步清理 `user_item_tags` 中对应关系
+
+## 条目标签接口
+
+### `GET /Plugins/PersonalRatings/item-tags?itemId=<guid>`
+
+查询当前用户对指定条目的标签。
+
+成功返回示例：
+
+```json
+{
+  "ItemId": "c3fbc7d0-415f-f29d-39d3-099f8db52663",
+  "Tags": [
+    {
+      "Id": 1,
+      "Name": "重看",
+      "Color": "#d88b2f"
+    }
+  ]
+}
+```
+
+### `PUT /Plugins/PersonalRatings/item-tags`
+
+覆盖写入当前用户对单条条目的标签关系。
+
+请求体：
+
+```json
+{
+  "itemId": "c3fbc7d0-415f-f29d-39d3-099f8db52663",
+  "tagIds": [1, 3]
+}
+```
+
+说明：
+
+- 传空数组表示清空该条目的全部标签
+- 当前只允许写入已启用的标签定义
 
 ## 删除审计查询接口
 
@@ -389,7 +547,7 @@
 
 ### `GET /Plugins/PersonalRatings/features`
 
-返回当前进程内已经生效的插件功能开关快照，主要供 Jellyfin Web 资源和插件页面做渐进降级。
+返回当前进程内已经生效的插件功能开关快照，主要供 Jellyfin Web 前台入口、详情页和后台页做渐进降级。
 
 成功返回结构：
 
@@ -401,13 +559,33 @@
 }
 ```
 
+## 插件 Web 资源接口
+
+这些接口主要给 Jellyfin Web 壳页面和插件前端页面使用，不建议当作外部业务 API 依赖。
+
+当前主要包括：
+
+- `GET /Plugins/PersonalRatings/web/details-rating.js`
+- `GET /Plugins/PersonalRatings/web/browse-shell.js`
+- `GET /Plugins/PersonalRatings/web/browse-page.css`
+- `GET /Plugins/PersonalRatings/web/manage-page.js`
+- `GET /Plugins/PersonalRatings/web/manage-page.css`
+- `GET /Plugins/PersonalRatings/web/audit-page.js`
+
+开关行为：
+
+- 当 `EnableDetailsPageInjection = false` 时，`details-rating.js` 不再注入，且资源接口返回 `404`
+- 当 `EnableManagePage = false` 时，前台“打分库”入口脚本、评分后台页和删除审计页相关资源接口都会返回 `404`
+
 ## 插件页面入口
 
+- 前台主入口：Jellyfin Web 顶栏“打分库”
+- 前台路由：`#/personalratings`
 - 配置页：`PersonalRatingsConfigPage`
-- 管理页：`PersonalRatingsManagePage`
-- 管理页前端路由：`#/configurationpage?name=PersonalRatingsManagePage`
+- 评分后台页：`PersonalRatingsManagePage`
+- 评分后台前端路由：`#/configurationpage?name=PersonalRatingsManagePage`
 - 删除审计页：`PersonalRatingsAuditPage`
-- 删除审计页前端路由：`#/configurationpage?name=PersonalRatingsAuditPage`
+- 删除审计前端路由：`#/configurationpage?name=PersonalRatingsAuditPage`
 
 ## 当前未提供的接口
 

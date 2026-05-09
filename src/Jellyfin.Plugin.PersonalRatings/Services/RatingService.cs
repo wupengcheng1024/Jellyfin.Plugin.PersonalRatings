@@ -13,13 +13,16 @@ internal sealed class RatingService : IRatingService
     private readonly IJellyfinItemResolver _itemResolver;
     private readonly ILogger<RatingService> _logger;
     private readonly IRatingRepository _ratingRepository;
+    private readonly ITagRepository _tagRepository;
 
     public RatingService(
         IRatingRepository ratingRepository,
+        ITagRepository tagRepository,
         IJellyfinItemResolver itemResolver,
         ILogger<RatingService> logger)
     {
         _ratingRepository = ratingRepository;
+        _tagRepository = tagRepository;
         _itemResolver = itemResolver;
         _logger = logger;
     }
@@ -28,7 +31,8 @@ internal sealed class RatingService : IRatingService
     {
         JellyfinItemMetadata metadata = await RequireMetadataAsync(itemId, userId, cancellationToken).ConfigureAwait(false);
         UserItemRating? rating = await _ratingRepository.GetAsync(userId, itemId, cancellationToken).ConfigureAwait(false);
-        return MapSingleResponse(rating, metadata);
+        IReadOnlyList<TagDefinition> tags = await _tagRepository.GetItemTagsAsync(userId, itemId, cancellationToken).ConfigureAwait(false);
+        return MapSingleResponse(rating, metadata, tags);
     }
 
     public async Task<RatingResponse> SetRatingAsync(Guid userId, Guid itemId, int score, CancellationToken cancellationToken)
@@ -40,14 +44,16 @@ internal sealed class RatingService : IRatingService
 
         JellyfinItemMetadata metadata = await RequireMetadataAsync(itemId, userId, cancellationToken).ConfigureAwait(false);
         UserItemRating rating = await _ratingRepository.UpsertScoreAsync(userId, itemId, score, cancellationToken).ConfigureAwait(false);
-        return MapSingleResponse(rating, metadata);
+        IReadOnlyList<TagDefinition> tags = await _tagRepository.GetItemTagsAsync(userId, itemId, cancellationToken).ConfigureAwait(false);
+        return MapSingleResponse(rating, metadata, tags);
     }
 
     public async Task<RatingResponse> ClearRatingAsync(Guid userId, Guid itemId, CancellationToken cancellationToken)
     {
         JellyfinItemMetadata metadata = await RequireMetadataAsync(itemId, userId, cancellationToken).ConfigureAwait(false);
         UserItemRating rating = await _ratingRepository.ClearScoreAsync(userId, itemId, cancellationToken).ConfigureAwait(false);
-        return MapSingleResponse(rating, metadata);
+        IReadOnlyList<TagDefinition> tags = await _tagRepository.GetItemTagsAsync(userId, itemId, cancellationToken).ConfigureAwait(false);
+        return MapSingleResponse(rating, metadata, tags);
     }
 
     public async Task<RatingQueryResponse> QueryRatingsAsync(Guid userId, RatingQueryRequest request, CancellationToken cancellationToken)
@@ -93,8 +99,17 @@ internal sealed class RatingService : IRatingService
             .Take(request.PageSize)
             .ToList();
 
+        IReadOnlyDictionary<Guid, IReadOnlyList<TagDefinition>> tagMap = await _tagRepository
+            .GetItemTagsMapAsync(userId, paged.Select(tuple => tuple.Rating.ItemId).ToList(), cancellationToken)
+            .ConfigureAwait(false);
+
         IReadOnlyList<RatingListItemResponse> items = paged
-            .Select(tuple => MapListResponse(tuple.Rating, tuple.Metadata))
+            .Select(tuple => MapListResponse(
+                tuple.Rating,
+                tuple.Metadata,
+                tagMap.TryGetValue(tuple.Rating.ItemId, out IReadOnlyList<TagDefinition>? tags)
+                    ? tags
+                    : Array.Empty<TagDefinition>()))
             .ToList();
 
         return new RatingQueryResponse
@@ -118,7 +133,7 @@ internal sealed class RatingService : IRatingService
         IReadOnlyList<UserItemRating> ratings = await _ratingRepository.UpsertScoresAsync(userId, normalizedItemIds, score, cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation("Applied score {Score} to {Count} items for user {UserId}", score, ratings.Count, userId);
-        return BuildBatchResponse("setScore", normalizedItemIds.Count, ratings, metadata);
+        return await BuildBatchResponseAsync("setScore", userId, normalizedItemIds.Count, ratings, metadata, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<BatchOperationResponse> BatchClearRatingAsync(Guid userId, IReadOnlyList<Guid> itemIds, CancellationToken cancellationToken)
@@ -128,7 +143,7 @@ internal sealed class RatingService : IRatingService
         IReadOnlyList<UserItemRating> ratings = await _ratingRepository.ClearScoresAsync(userId, normalizedItemIds, cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation("Cleared scores for {Count} items for user {UserId}", ratings.Count, userId);
-        return BuildBatchResponse("clearScore", normalizedItemIds.Count, ratings, metadata);
+        return await BuildBatchResponseAsync("clearScore", userId, normalizedItemIds.Count, ratings, metadata, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<BatchOperationResponse> BatchSetPendingDeleteAsync(Guid userId, IReadOnlyList<Guid> itemIds, bool isPendingDelete, CancellationToken cancellationToken)
@@ -142,10 +157,19 @@ internal sealed class RatingService : IRatingService
             isPendingDelete,
             ratings.Count,
             userId);
-        return BuildBatchResponse(isPendingDelete ? "setPendingDelete" : "unsetPendingDelete", normalizedItemIds.Count, ratings, metadata);
+        return await BuildBatchResponseAsync(
+            isPendingDelete ? "setPendingDelete" : "unsetPendingDelete",
+            userId,
+            normalizedItemIds.Count,
+            ratings,
+            metadata,
+            cancellationToken).ConfigureAwait(false);
     }
 
-    private static RatingListItemResponse MapListResponse(UserItemRating rating, JellyfinItemMetadata? metadata)
+    private static RatingListItemResponse MapListResponse(
+        UserItemRating rating,
+        JellyfinItemMetadata? metadata,
+        IReadOnlyList<TagDefinition> tags)
     {
         return new RatingListItemResponse
         {
@@ -160,11 +184,15 @@ internal sealed class RatingService : IRatingService
             ItemName = metadata?.Name,
             MediaType = metadata?.MediaType,
             ItemType = metadata?.ClientTypeName,
-            ProductionYear = metadata?.ProductionYear
+            ProductionYear = metadata?.ProductionYear,
+            Tags = tags.Select(MapTagReference).ToList()
         };
     }
 
-    private static RatingResponse MapSingleResponse(UserItemRating? rating, JellyfinItemMetadata metadata)
+    private static RatingResponse MapSingleResponse(
+        UserItemRating? rating,
+        JellyfinItemMetadata metadata,
+        IReadOnlyList<TagDefinition> tags)
     {
         return new RatingResponse
         {
@@ -179,7 +207,8 @@ internal sealed class RatingService : IRatingService
             ItemName = metadata.Name,
             MediaType = metadata.MediaType,
             ItemType = metadata.ClientTypeName,
-            ProductionYear = metadata.ProductionYear
+            ProductionYear = metadata.ProductionYear,
+            Tags = tags.Select(MapTagReference).ToList()
         };
     }
 
@@ -354,7 +383,16 @@ internal sealed class RatingService : IRatingService
         CancellationToken cancellationToken)
     {
         List<(UserItemRating Rating, JellyfinItemMetadata? Metadata)> combined = await ResolveMetadataAsync(userId, ratings, cancellationToken).ConfigureAwait(false);
-        return combined.Select(tuple => MapListResponse(tuple.Rating, tuple.Metadata)).ToList();
+        IReadOnlyDictionary<Guid, IReadOnlyList<TagDefinition>> tagMap = await _tagRepository
+            .GetItemTagsMapAsync(userId, ratings.Select(rating => rating.ItemId).ToList(), cancellationToken)
+            .ConfigureAwait(false);
+
+        return combined.Select(tuple => MapListResponse(
+            tuple.Rating,
+            tuple.Metadata,
+            tagMap.TryGetValue(tuple.Rating.ItemId, out IReadOnlyList<TagDefinition>? tags)
+                ? tags
+                : Array.Empty<TagDefinition>())).ToList();
     }
 
     private async Task<JellyfinItemMetadata> RequireMetadataAsync(Guid itemId, Guid userId, CancellationToken cancellationToken)
@@ -429,13 +467,18 @@ internal sealed class RatingService : IRatingService
         return normalized;
     }
 
-    private BatchOperationResponse BuildBatchResponse(
+    private async Task<BatchOperationResponse> BuildBatchResponseAsync(
         string operation,
+        Guid userId,
         int requestedCount,
         IReadOnlyList<UserItemRating> ratings,
-        IReadOnlyList<JellyfinItemMetadata> metadata)
+        IReadOnlyList<JellyfinItemMetadata> metadata,
+        CancellationToken cancellationToken)
     {
         Dictionary<Guid, JellyfinItemMetadata> metadataById = metadata.ToDictionary(item => item.ItemId, item => item);
+        IReadOnlyDictionary<Guid, IReadOnlyList<TagDefinition>> tagMap = await _tagRepository
+            .GetItemTagsMapAsync(userId, ratings.Select(rating => rating.ItemId).ToList(), cancellationToken)
+            .ConfigureAwait(false);
         List<RatingResponse> items = [];
 
         foreach (UserItemRating rating in ratings)
@@ -445,7 +488,11 @@ internal sealed class RatingService : IRatingService
                 continue;
             }
 
-            items.Add(MapSingleResponse(rating, itemMetadata));
+            IReadOnlyList<TagDefinition> tags = tagMap.TryGetValue(rating.ItemId, out IReadOnlyList<TagDefinition>? itemTags)
+                ? itemTags
+                : Array.Empty<TagDefinition>();
+
+            items.Add(MapSingleResponse(rating, itemMetadata, tags));
         }
 
         return new BatchOperationResponse
@@ -487,10 +534,37 @@ internal sealed class RatingService : IRatingService
             throw new ArgumentException("RatedAfterUtc cannot be later than RatedBeforeUtc.", nameof(request));
         }
 
+        if (request.TagIds.Any(tagId => tagId <= 0))
+        {
+            throw new ArgumentException("tagIds must contain positive values only.", nameof(request));
+        }
+
+        request.TagIds = request.TagIds
+            .Where(tagId => tagId > 0)
+            .Distinct()
+            .ToList();
+
+        if (!string.Equals(request.TagMatchMode, "any", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(request.TagMatchMode, "all", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("TagMatchMode must be either 'any' or 'all'.", nameof(request));
+        }
+
         request.PageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
 
         int configuredDefaultPageSize = Plugin.Instance?.Configuration.DefaultPageSize ?? PluginConfiguration.DefaultPageSizeValue;
         int defaultPageSize = configuredDefaultPageSize <= 0 ? PluginConfiguration.DefaultPageSizeValue : configuredDefaultPageSize;
         request.PageSize = request.PageSize <= 0 ? defaultPageSize : Math.Min(request.PageSize, MaxPageSize);
+    }
+
+    private static TagReferenceResponse MapTagReference(TagDefinition tag)
+    {
+        return new TagReferenceResponse
+        {
+            Id = tag.Id,
+            Name = tag.Name,
+            Color = tag.Color,
+            SortOrder = tag.SortOrder
+        };
     }
 }

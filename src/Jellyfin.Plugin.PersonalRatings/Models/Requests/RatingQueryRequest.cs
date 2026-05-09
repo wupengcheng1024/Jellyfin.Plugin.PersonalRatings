@@ -68,6 +68,16 @@ public sealed class RatingQueryRequest
     public string? Keyword { get; set; }
 
     /// <summary>
+    /// Gets or sets the tag filters.
+    /// </summary>
+    public List<long> TagIds { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the tag match mode. Supported values: any, all.
+    /// </summary>
+    public string TagMatchMode { get; set; } = "any";
+
+    /// <summary>
     /// Gets or sets the sort field.
     /// </summary>
     public string SortBy { get; set; } = "updatedAt";
