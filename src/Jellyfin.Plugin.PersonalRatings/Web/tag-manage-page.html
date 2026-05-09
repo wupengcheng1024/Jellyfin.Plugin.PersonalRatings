@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <title>标签管理</title>
+</head>
+<body>
+    <div id="personalRatingsTagManagePage" data-role="page" class="page type-interior pluginConfigurationPage configPage personalRatingsManagePage personalRatingsTagManagePage" data-title="标签管理" data-backbutton="true" data-require="emby-button,emby-input,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <section class="personalRatingsHero">
+                    <div>
+                        <p class="personalRatingsEyebrow">Jellyfin.PersonalRatings</p>
+                        <h1>标签管理</h1>
+                        <p class="personalRatingsHeroText">这里提供一期标签定义的后台维护能力：新增、编辑、启用 / 停用、排序和删除。前台“打分库”和详情页会复用这里的定义。</p>
+                    </div>
+                    <div class="personalRatingsHeroActions" style="gap: 12px; flex-wrap: wrap;">
+                        <a is="emby-linkbutton" class="button-flat" href="#/configurationpage?name=PersonalRatingsManagePage">评分后台</a>
+                        <a is="emby-linkbutton" class="button-flat" href="#/configurationpage?name=PersonalRatingsAuditPage">删除审计</a>
+                        <button is="emby-button" type="button" class="raised button-submit personalRatingsTagRefreshButton">
+                            <span>刷新标签</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="personalRatingsPanel">
+                    <form class="personalRatingsTagForm">
+                        <div class="personalRatingsToolbar">
+                            <div class="personalRatingsToolbarGroup">
+                                <label class="personalRatingsField">
+                                    <span>标签名称</span>
+                                    <input is="emby-input" type="text" class="txtTagName" maxlength="40" placeholder="例如：重看 / 年度候选" />
+                                </label>
+                                <label class="personalRatingsField personalRatingsCompactField">
+                                    <span>颜色</span>
+                                    <div class="personalRatingsTagColorField">
+                                        <input type="color" class="txtTagColorPicker" value="#d88b2f" />
+                                        <input is="emby-input" type="text" class="txtTagColorText" value="#d88b2f" placeholder="#d88b2f" />
+                                    </div>
+                                </label>
+                                <label class="personalRatingsField personalRatingsCompactField">
+                                    <span>排序号</span>
+                                    <input is="emby-input" type="number" class="txtTagSortOrder" value="10" />
+                                </label>
+                                <label class="personalRatingsField personalRatingsCompactField">
+                                    <span>启用状态</span>
+                                    <label class="checkboxContainerLabel">
+                                        <input is="emby-checkbox" type="checkbox" class="chkTagEnabled" checked="checked" />
+                                        <span>启用</span>
+                                    </label>
+                                </label>
+                            </div>
+                            <div class="personalRatingsToolbarGroup">
+                                <button is="emby-button" type="submit" class="raised button-submit personalRatingsTagSaveButton">
+                                    <span>保存标签</span>
+                                </button>
+                                <button is="emby-button" type="button" class="button-flat personalRatingsTagCancelEditButton">
+                                    <span>取消编辑</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="personalRatingsPanel">
+                    <div class="personalRatingsFeedback">
+                        <div class="personalRatingsTagSummaryText personalRatingsSummaryText">正在准备标签列表...</div>
+                        <div class="personalRatingsTagStatusText personalRatingsStatusText" aria-live="polite"></div>
+                    </div>
+
+                    <div class="personalRatingsTableWrap">
+                        <table class="personalRatingsTable">
+                            <thead>
+                                <tr>
+                                    <th>标签</th>
+                                    <th>颜色</th>
+                                    <th>状态</th>
+                                    <th>排序号</th>
+                                    <th>更新时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="personalRatingsTagRows"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                var page = document.querySelector('.personalRatingsTagManagePage');
+                var sharedStylesheetId = 'personalRatingsManagePageStylesheet';
+                var pageStylesheetId = 'personalRatingsTagManagePageStylesheet';
+                var scriptId = 'personalRatingsTagManagePageScript';
+
+                if (!document.getElementById(sharedStylesheetId)) {
+                    var sharedStylesheet = document.createElement('link');
+                    sharedStylesheet.id = sharedStylesheetId;
+                    sharedStylesheet.rel = 'stylesheet';
+                    sharedStylesheet.href = '/Plugins/PersonalRatings/web/manage-page.css';
+                    document.head.appendChild(sharedStylesheet);
+                }
+
+                if (!document.getElementById(pageStylesheetId)) {
+                    var pageStylesheet = document.createElement('link');
+                    pageStylesheet.id = pageStylesheetId;
+                    pageStylesheet.rel = 'stylesheet';
+                    pageStylesheet.href = '/Plugins/PersonalRatings/web/tag-manage-page.css';
+                    document.head.appendChild(pageStylesheet);
+                }
+
+                function registerWhenReady() {
+                    if (window.PersonalRatingsTagManagePage && typeof window.PersonalRatingsTagManagePage.register === 'function') {
+                        window.PersonalRatingsTagManagePage.register(page);
+                    } else {
+                        window.setTimeout(registerWhenReady, 50);
+                    }
+                }
+
+                if (!document.getElementById(scriptId)) {
+                    var script = document.createElement('script');
+                    script.id = scriptId;
+                    script.src = '/Plugins/PersonalRatings/web/tag-manage-page.js';
+                    script.onload = registerWhenReady;
+                    document.body.appendChild(script);
+                } else {
+                    registerWhenReady();
+                }
+            })();
+        </script>
+    </div>
+</body>
+</html>

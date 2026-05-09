@@ -21,6 +21,8 @@ public sealed class WebAssetsControllerTests
         ActionResult result = controller.GetDetailsRatingScript();
 
         Assert.IsType<NotFoundResult>(result);
+        Assert.IsType<NotFoundResult>(controller.GetDetailsApiScript());
+        Assert.IsType<NotFoundResult>(controller.GetDetailsPanelScript());
     }
 
     [Fact]
@@ -36,6 +38,12 @@ public sealed class WebAssetsControllerTests
         Assert.IsType<NotFoundResult>(controller.GetManagePageScript());
         Assert.IsType<NotFoundResult>(controller.GetManagePageStyles());
         Assert.IsType<NotFoundResult>(controller.GetAuditPageScript());
+        Assert.IsType<NotFoundResult>(controller.GetTagManagePageScript());
+        Assert.IsType<NotFoundResult>(controller.GetTagManagePageStyles());
+        Assert.IsType<NotFoundResult>(controller.GetBrowseStateScript());
+        Assert.IsType<NotFoundResult>(controller.GetBrowseApiScript());
+        Assert.IsType<NotFoundResult>(controller.GetBrowseRenderScript());
+        Assert.IsType<NotFoundResult>(controller.GetBrowseFiltersScript());
         Assert.IsType<NotFoundResult>(controller.GetBrowseShellScript());
         Assert.IsType<NotFoundResult>(controller.GetBrowsePageStyles());
     }

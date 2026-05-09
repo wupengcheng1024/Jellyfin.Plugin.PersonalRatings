@@ -45,6 +45,96 @@ public sealed class WebAssetsController : ControllerBase
     }
 
     /// <summary>
+    /// Gets the detail-page API helper script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("details-api.js")]
+    public ActionResult GetDetailsApiScript()
+    {
+        if (!_featureService.IsDetailsPageInjectionEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("details-api.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the detail-page panel rendering script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("details-panel.js")]
+    public ActionResult GetDetailsPanelScript()
+    {
+        if (!_featureService.IsDetailsPageInjectionEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("details-panel.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the front-end browse-page state script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("browse-state.js")]
+    public ActionResult GetBrowseStateScript()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("browse-state.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the front-end browse-page API helper script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("browse-api.js")]
+    public ActionResult GetBrowseApiScript()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("browse-api.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the front-end browse-page renderer script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("browse-render.js")]
+    public ActionResult GetBrowseRenderScript()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("browse-render.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the front-end browse-page toolbar / filter script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("browse-filters.js")]
+    public ActionResult GetBrowseFiltersScript()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("browse-filters.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
     /// Gets the injected front-end browse-page shell script.
     /// </summary>
     /// <returns>The JavaScript asset.</returns>
@@ -117,6 +207,36 @@ public sealed class WebAssetsController : ControllerBase
         }
 
         return GetEmbeddedAsset("audit-page.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the tag-management page script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("tag-manage-page.js")]
+    public ActionResult GetTagManagePageScript()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("tag-manage-page.js", "text/javascript; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the tag-management page stylesheet.
+    /// </summary>
+    /// <returns>The stylesheet asset.</returns>
+    [HttpGet("tag-manage-page.css")]
+    public ActionResult GetTagManagePageStyles()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("tag-manage-page.css", "text/css; charset=utf-8");
     }
 
     private ActionResult GetEmbeddedAsset(string fileName, string contentType)

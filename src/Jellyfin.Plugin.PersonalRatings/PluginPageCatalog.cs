@@ -42,6 +42,16 @@ internal static class PluginPageCatalog
                     "{0}.Web.audit-page.html",
                     rootNamespace)
             });
+
+            pages.Add(new PluginPageInfo
+            {
+                Name = "PersonalRatingsTagManagePage",
+                DisplayName = "标签管理",
+                EmbeddedResourcePath = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}.Web.tag-manage-page.html",
+                    rootNamespace)
+            });
         }
 
         return pages;

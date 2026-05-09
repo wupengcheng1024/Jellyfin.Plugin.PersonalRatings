@@ -565,17 +565,25 @@
 
 当前主要包括：
 
+- `GET /Plugins/PersonalRatings/web/browse-state.js`
+- `GET /Plugins/PersonalRatings/web/browse-api.js`
+- `GET /Plugins/PersonalRatings/web/browse-render.js`
+- `GET /Plugins/PersonalRatings/web/browse-filters.js`
 - `GET /Plugins/PersonalRatings/web/details-rating.js`
+- `GET /Plugins/PersonalRatings/web/details-api.js`
+- `GET /Plugins/PersonalRatings/web/details-panel.js`
 - `GET /Plugins/PersonalRatings/web/browse-shell.js`
 - `GET /Plugins/PersonalRatings/web/browse-page.css`
 - `GET /Plugins/PersonalRatings/web/manage-page.js`
 - `GET /Plugins/PersonalRatings/web/manage-page.css`
 - `GET /Plugins/PersonalRatings/web/audit-page.js`
+- `GET /Plugins/PersonalRatings/web/tag-manage-page.js`
+- `GET /Plugins/PersonalRatings/web/tag-manage-page.css`
 
 开关行为：
 
 - 当 `EnableDetailsPageInjection = false` 时，`details-rating.js` 不再注入，且资源接口返回 `404`
-- 当 `EnableManagePage = false` 时，前台“打分库”入口脚本、评分后台页和删除审计页相关资源接口都会返回 `404`
+- 当 `EnableManagePage = false` 时，前台“打分库”入口脚本、评分后台页、标签管理页和删除审计页相关资源接口都会返回 `404`
 
 ## 插件页面入口
 
@@ -584,6 +592,8 @@
 - 配置页：`PersonalRatingsConfigPage`
 - 评分后台页：`PersonalRatingsManagePage`
 - 评分后台前端路由：`#/configurationpage?name=PersonalRatingsManagePage`
+- 标签管理页：`PersonalRatingsTagManagePage`
+- 标签管理前端路由：`#/configurationpage?name=PersonalRatingsTagManagePage`
 - 删除审计页：`PersonalRatingsAuditPage`
 - 删除审计前端路由：`#/configurationpage?name=PersonalRatingsAuditPage`
 

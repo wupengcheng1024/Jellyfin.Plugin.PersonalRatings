@@ -35,23 +35,41 @@
 
   <ItemGroup>
     <None Remove="Configuration\configPage.html" />
+    <None Remove="Web\browse-api.js" />
+    <None Remove="Web\browse-filters.js" />
     <None Remove="Web\browse-page.css" />
+    <None Remove="Web\browse-render.js" />
     <None Remove="Web\browse-shell.js" />
+    <None Remove="Web\browse-state.js" />
+    <None Remove="Web\details-api.js" />
     <None Remove="Web\details-rating.js" />
+    <None Remove="Web\details-panel.js" />
     <None Remove="Web\audit-page.html" />
     <None Remove="Web\audit-page.js" />
     <None Remove="Web\manage-page.css" />
     <None Remove="Web\manage-page.html" />
     <None Remove="Web\manage-page.js" />
+    <None Remove="Web\tag-manage-page.css" />
+    <None Remove="Web\tag-manage-page.html" />
+    <None Remove="Web\tag-manage-page.js" />
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Web\browse-api.js" />
+    <EmbeddedResource Include="Web\browse-filters.js" />
     <EmbeddedResource Include="Web\browse-page.css" />
+    <EmbeddedResource Include="Web\browse-render.js" />
     <EmbeddedResource Include="Web\browse-shell.js" />
+    <EmbeddedResource Include="Web\browse-state.js" />
+    <EmbeddedResource Include="Web\details-api.js" />
     <EmbeddedResource Include="Web\details-rating.js" />
+    <EmbeddedResource Include="Web\details-panel.js" />
     <EmbeddedResource Include="Web\audit-page.html" />
     <EmbeddedResource Include="Web\audit-page.js" />
     <EmbeddedResource Include="Web\manage-page.css" />
     <EmbeddedResource Include="Web\manage-page.html" />
     <EmbeddedResource Include="Web\manage-page.js" />
+    <EmbeddedResource Include="Web\tag-manage-page.css" />
+    <EmbeddedResource Include="Web\tag-manage-page.html" />
+    <EmbeddedResource Include="Web\tag-manage-page.js" />
   </ItemGroup>
 
   <Target Name="RemovePluginNativeRuntimeAssets" AfterTargets="Publish">

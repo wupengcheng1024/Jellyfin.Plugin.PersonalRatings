@@ -184,11 +184,17 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
 
         if (_featureService.IsManagePageEnabled)
         {
+            scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/browse-state.js?v=", versionToken));
+            scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/browse-api.js?v=", versionToken));
+            scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/browse-render.js?v=", versionToken));
+            scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/browse-filters.js?v=", versionToken));
             scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/browse-shell.js?v=", versionToken));
         }
 
         if (_featureService.IsDetailsPageInjectionEnabled)
         {
+            scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/details-api.js?v=", versionToken));
+            scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/details-panel.js?v=", versionToken));
             scriptTags.Add(BuildScriptTag("/Plugins/PersonalRatings/web/details-rating.js?v=", versionToken));
         }
 

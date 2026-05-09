@@ -20,6 +20,7 @@ public sealed class PluginPageCatalogTests
         Assert.Single(pages);
         Assert.DoesNotContain(pages, page => page.Name == "PersonalRatingsManagePage");
         Assert.DoesNotContain(pages, page => page.Name == "PersonalRatingsAuditPage");
+        Assert.DoesNotContain(pages, page => page.Name == "PersonalRatingsTagManagePage");
     }
 
     [Fact]
@@ -36,5 +37,6 @@ public sealed class PluginPageCatalogTests
 
         Assert.Contains(pages, page => page.Name == "PersonalRatingsManagePage");
         Assert.Contains(pages, page => page.Name == "PersonalRatingsAuditPage");
+        Assert.Contains(pages, page => page.Name == "PersonalRatingsTagManagePage");
     }
 }

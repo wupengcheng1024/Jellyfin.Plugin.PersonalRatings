@@ -15,6 +15,9 @@
                     <button is="emby-button" type="button" class="raised button-submit" id="openManagePageButton">
                         <span>打开评分后台</span>
                     </button>
+                    <button is="emby-button" type="button" class="button-flat" id="openTagManagePageButton">
+                        <span>打开标签管理</span>
+                    </button>
                     <button is="emby-button" type="button" class="button-flat" id="copyManageUrlButton">
                         <span>复制页面路由</span>
                     </button>
@@ -28,7 +31,9 @@
         <script type="text/javascript">
             (function () {
                 var route = 'configurationpage?name=PersonalRatingsManagePage';
+                var tagRoute = 'configurationpage?name=PersonalRatingsTagManagePage';
                 var openButton = document.querySelector('#openManagePageButton');
+                var openTagButton = document.querySelector('#openTagManagePageButton');
                 var copyButton = document.querySelector('#copyManageUrlButton');
                 var statusText = document.querySelector('#personalRatingsConfigStatusText');
                 var routeText = document.querySelector('#managePageUrlText');
@@ -40,6 +45,15 @@
                     }
 
                     window.location.hash = '#/' + route;
+                });
+
+                openTagButton.addEventListener('click', function () {
+                    if (window.Dashboard && typeof window.Dashboard.navigate === 'function') {
+                        window.Dashboard.navigate(tagRoute);
+                        return;
+                    }
+
+                    window.location.hash = '#/' + tagRoute;
                 });
 
                 copyButton.addEventListener('click', function () {
@@ -65,6 +79,7 @@
 
                     statusText.textContent = '当前配置已禁用“打分库 / 评分后台”入口。';
                     openButton.hidden = true;
+                    openTagButton.hidden = true;
                     copyButton.hidden = true;
                     routeText.textContent = '管理页已禁用';
                 }).catch(function () {

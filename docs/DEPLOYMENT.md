@@ -84,12 +84,12 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 4. 验证前台浏览页能正常加载卡片流。
 5. 切换海报视图 / 列表视图，确认页面能正常切换。
 6. 试用评分、播放状态、类型、排序、搜索等筛选。
-7. 如果已经存在标签定义，确认顶部标签 chips 能加载并参与筛选。
+7. 如果已经存在标签定义，确认顶部标签 chips 能加载并参与筛选，且卡片只显示 2~3 个标签摘要。
 8. 点击任意卡片，确认能跳回原始 Jellyfin 详情页。
 9. 在详情页确认出现统一操作区，并验证：
    - 打分
    - 待删除
-   - 标签占位交互
+   - 标签切换交互
 10. 打开评分后台：
 
     ```text
@@ -97,14 +97,21 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
     ```
 
 11. 验证分页加载、批量操作和后台入口仍可用。
-12. 使用管理员账号验证物理删除。
-13. 打开删除审计页并确认能看到刚才的删除记录：
+12. 打开标签管理页并验证管理员能力：
+
+    ```text
+    #/configurationpage?name=PersonalRatingsTagManagePage
+    ```
+
+13. 验证标签列表、新建、编辑、启用 / 停用、排序号和删除都可用。
+14. 使用管理员账号验证物理删除。
+15. 打开删除审计页并确认能看到刚才的删除记录：
 
     ```text
     #/configurationpage?name=PersonalRatingsAuditPage
     ```
 
-14. 确认数据库中出现 `delete_audit_logs` 记录。
+16. 确认数据库中出现 `delete_audit_logs` 记录。
 
 ## 常见问题
 
@@ -142,6 +149,12 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 - `GET /Plugins/PersonalRatings/tags` 是否正常返回
 - 当前用户是否能访问目标条目
 
+如果需要维护标签定义，请进入：
+
+```text
+#/configurationpage?name=PersonalRatingsTagManagePage
+```
+
 ### 5. 物理删除返回失败
 
 先确认：
@@ -152,7 +165,7 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 - 目标条目是否仍存在
 - Jellyfin 本身是否有权删除底层媒体路径
 
-### 6. 打分库入口、评分后台或删除审计页一起消失
+### 6. 打分库入口、评分后台、标签管理或删除审计页一起消失
 
 先确认：
 
@@ -175,4 +188,4 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 - `dotnet build src/Jellyfin.Plugin.PersonalRatings/Jellyfin.Plugin.PersonalRatings.csproj`
 - `dotnet test tests/Jellyfin.Plugin.PersonalRatings.Tests/Jellyfin.Plugin.PersonalRatings.Tests.csproj`
 - 前台“打分库”页手动联调
-- 详情页统一操作区、评分后台页和删除审计页手动联调
+- 详情页统一操作区、评分后台页、标签管理页和删除审计页手动联调

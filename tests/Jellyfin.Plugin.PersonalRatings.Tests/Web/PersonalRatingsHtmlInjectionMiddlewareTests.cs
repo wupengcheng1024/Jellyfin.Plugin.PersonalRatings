@@ -37,7 +37,9 @@ public sealed class PersonalRatingsHtmlInjectionMiddlewareTests
 
         string html = Encoding.UTF8.GetString(responseBody.ToArray());
         Assert.DoesNotContain("/Plugins/PersonalRatings/web/details-rating.js", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("/Plugins/PersonalRatings/web/details-api.js", html, StringComparison.Ordinal);
         Assert.DoesNotContain("/Plugins/PersonalRatings/web/browse-shell.js", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("/Plugins/PersonalRatings/web/browse-state.js", html, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -67,6 +69,10 @@ public sealed class PersonalRatingsHtmlInjectionMiddlewareTests
         await middleware.InvokeAsync(httpContext);
 
         string html = Encoding.UTF8.GetString(responseBody.ToArray());
+        Assert.Contains("/Plugins/PersonalRatings/web/browse-state.js", html, StringComparison.Ordinal);
+        Assert.Contains("/Plugins/PersonalRatings/web/browse-api.js", html, StringComparison.Ordinal);
+        Assert.Contains("/Plugins/PersonalRatings/web/browse-render.js", html, StringComparison.Ordinal);
+        Assert.Contains("/Plugins/PersonalRatings/web/browse-filters.js", html, StringComparison.Ordinal);
         Assert.Contains("/Plugins/PersonalRatings/web/browse-shell.js", html, StringComparison.Ordinal);
         Assert.DoesNotContain("/Plugins/PersonalRatings/web/details-rating.js", html, StringComparison.Ordinal);
     }
@@ -97,6 +103,8 @@ public sealed class PersonalRatingsHtmlInjectionMiddlewareTests
         await middleware.InvokeAsync(httpContext);
 
         string html = Encoding.UTF8.GetString(responseBody.ToArray());
+        Assert.Contains("/Plugins/PersonalRatings/web/details-api.js", html, StringComparison.Ordinal);
+        Assert.Contains("/Plugins/PersonalRatings/web/details-panel.js", html, StringComparison.Ordinal);
         Assert.Contains("/Plugins/PersonalRatings/web/details-rating.js", html, StringComparison.Ordinal);
         Assert.Contains("/Plugins/PersonalRatings/web/browse-shell.js", html, StringComparison.Ordinal);
     }

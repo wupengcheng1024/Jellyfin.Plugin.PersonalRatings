@@ -21,6 +21,7 @@
 - 前台“打分库”浏览页
 - 详情页统一操作区
 - 评分后台页
+- 标签管理页
 - 删除审计页
 
 当前不覆盖：
@@ -49,7 +50,7 @@
 
 - `EnableDeleteFeature=false` 会隐藏前端删除入口，并阻断后端物理删除接口
 - `EnableDetailsPageInjection=false` 会停止详情页注入
-- `EnableManagePage=false` 会隐藏前台“打分库”入口、评分后台页和删除审计页入口，并停止相关静态资源暴露
+- `EnableManagePage=false` 会隐藏前台“打分库”入口、评分后台页、标签管理页和删除审计页入口，并停止相关静态资源暴露
 
 当前仍未处理的字段包括：
 
@@ -134,9 +135,9 @@
 - 仍受 Jellyfin 10.10.7 Web 壳 DOM 结构影响
 - 升级到新版本前必须重新回归顶栏注入与页面挂载
 
-## 10. 评分后台页和删除审计页仍然借用 configurationpage 壳
+## 10. 评分后台页、标签管理页和删除审计页仍然借用 configurationpage 壳
 
-当前 `#/configurationpage?name=PersonalRatingsManagePage` 与 `#/configurationpage?name=PersonalRatingsAuditPage` 仍然保留，但它们现在只作为后台页，不再是产品主入口。
+当前 `#/configurationpage?name=PersonalRatingsManagePage`、`#/configurationpage?name=PersonalRatingsTagManagePage` 与 `#/configurationpage?name=PersonalRatingsAuditPage` 仍然保留，但它们现在只作为后台页，不再是产品主入口。
 
 这意味着：
 
@@ -153,14 +154,15 @@
 - 单条条目标签 API
 - 批量加标签 / 移除标签
 - `ratings/query` 的 `tagIds` 与 `tagMatchMode`
-- 详情页标签占位交互
+- 详情页标签交互
 - 前台浏览页标签筛选 chips
+- 标签管理后台页
 
 当前仍未完全收口：
 
-- 评分后台页还没有完整的标签管理界面
 - 标签定义目前是全局共享，而不是按用户隔离
-- 卡片上的标签 chips 仍偏 MVP 呈现
+- 前台卡片与筛选条虽然更接近浏览页，但仍是注入式 MVP 实现
+- 标签管理页仍是基础 CRUD 版本，没有更复杂的批量编排与拖拽排序
 
 ## 12. 部署后旧页签通常需要刷新
 
@@ -178,6 +180,7 @@
 
 - SQLite Repository 的真实查询与写入行为
 - 标签关系查询的真实数据库级测试
+- 标签后台页前端交互的端到端自动化
 - Web 前端交互的端到端自动化
 - 本地 Jellyfin 10.10.7 真实运行时的完整集成回归
 
