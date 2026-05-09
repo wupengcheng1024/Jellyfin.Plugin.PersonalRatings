@@ -300,6 +300,11 @@
 - `auditUnavailable`
 - `forbidden`
 
+当 `EnableDeleteFeature = false` 时：
+
+- 前端不再显示物理删除入口
+- 后端会阻断该接口，并返回 `409 Conflict`
+
 ## 批量接口通用响应
 
 除 `delete-physical` 外，其他批量接口当前返回 `BatchOperationResponse`，核心字段包括：
@@ -316,18 +321,98 @@
 - `GET /Plugins/PersonalRatings/web/details-rating.js`
 - `GET /Plugins/PersonalRatings/web/manage-page.js`
 - `GET /Plugins/PersonalRatings/web/manage-page.css`
+- `GET /Plugins/PersonalRatings/web/audit-page.js`
+
+开关行为：
+
+- 当 `EnableDetailsPageInjection = false` 时，`details-rating.js` 不再注入，且资源接口返回 `404`
+- 当 `EnableManagePage = false` 时，管理页和审计页相关资源接口返回 `404`
+
+## 删除审计查询接口
+
+### `POST /Plugins/PersonalRatings/audit-logs/query`
+
+按分页查询删除审计日志。当前默认只允许管理员访问。
+
+请求体字段：
+
+```json
+{
+  "createdAfterUtc": null,
+  "createdBeforeUtc": null,
+  "result": "deleted",
+  "keyword": "movie",
+  "itemId": "c3fbc7d0-415f-f29d-39d3-099f8db52663",
+  "pageNumber": 1,
+  "pageSize": 25
+}
+```
+
+当前支持的最小筛选字段：
+
+- `createdAfterUtc`
+- `createdBeforeUtc`
+- `result`
+- `keyword`
+- `itemId`
+
+成功返回结构：
+
+```json
+{
+  "Items": [
+    {
+      "Id": 12,
+      "OperatorUserId": "1c9f048a-3115-4b46-9d7f-1f96a5b714d7",
+      "ItemId": "c3fbc7d0-415f-f29d-39d3-099f8db52663",
+      "ItemName": "Example Item",
+      "Action": "deletePhysical",
+      "Result": "deleted",
+      "Message": "The item was deleted from Jellyfin.",
+      "CreatedAt": "2026-05-08T05:12:10.0000000+00:00"
+    }
+  ],
+  "TotalCount": 1,
+  "PageNumber": 1,
+  "PageSize": 25
+}
+```
+
+可能返回：
+
+- `200 OK`
+- `400 Bad Request`
+- `401 Unauthorized`
+- `403 Forbidden`
+
+## 插件功能开关快照接口
+
+### `GET /Plugins/PersonalRatings/features`
+
+返回当前进程内已经生效的插件功能开关快照，主要供 Jellyfin Web 资源和插件页面做渐进降级。
+
+成功返回结构：
+
+```json
+{
+  "IsDeleteFeatureEnabled": true,
+  "IsDetailsPageInjectionEnabled": true,
+  "IsManagePageEnabled": true
+}
+```
 
 ## 插件页面入口
 
 - 配置页：`PersonalRatingsConfigPage`
 - 管理页：`PersonalRatingsManagePage`
 - 管理页前端路由：`#/configurationpage?name=PersonalRatingsManagePage`
+- 删除审计页：`PersonalRatingsAuditPage`
+- 删除审计页前端路由：`#/configurationpage?name=PersonalRatingsAuditPage`
 
 ## 当前未提供的接口
 
 以下能力尚未实现独立 API：
 
-- 审计日志查询接口
 - 删除审计导出接口
 - Favorite 同步接口
 - 非 Web 客户端专用接口

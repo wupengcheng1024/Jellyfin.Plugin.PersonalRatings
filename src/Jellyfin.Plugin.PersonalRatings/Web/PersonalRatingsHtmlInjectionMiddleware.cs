@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.PersonalRatings.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -14,6 +15,7 @@ namespace Jellyfin.Plugin.PersonalRatings.Web;
 /// </summary>
 public sealed class PersonalRatingsHtmlInjectionMiddleware
 {
+    private readonly IPluginFeatureService _featureService;
     private readonly ILogger<PersonalRatingsHtmlInjectionMiddleware> _logger;
     private readonly RequestDelegate _next;
 
@@ -24,9 +26,11 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
     /// <param name="logger">The logger.</param>
     public PersonalRatingsHtmlInjectionMiddleware(
         RequestDelegate next,
+        IPluginFeatureService featureService,
         ILogger<PersonalRatingsHtmlInjectionMiddleware> logger)
     {
         _next = next;
+        _featureService = featureService;
         _logger = logger;
     }
 
@@ -37,6 +41,12 @@ public sealed class PersonalRatingsHtmlInjectionMiddleware
     /// <returns>A task that completes when the response is written.</returns>
     public async Task InvokeAsync(HttpContext httpContext)
     {
+        if (!_featureService.IsDetailsPageInjectionEnabled)
+        {
+            await _next(httpContext).ConfigureAwait(false);
+            return;
+        }
+
         if (!ShouldInspectRequest(httpContext.Request.Path))
         {
             await _next(httpContext).ConfigureAwait(false);

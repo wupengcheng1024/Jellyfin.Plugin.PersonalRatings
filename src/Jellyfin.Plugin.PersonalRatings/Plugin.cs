@@ -43,26 +43,9 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     /// <inheritdoc />
     public IEnumerable<PluginPageInfo> GetPages()
     {
-        return
-        [
-            new PluginPageInfo
-            {
-                Name = "PersonalRatingsConfigPage",
-                DisplayName = Name,
-                EmbeddedResourcePath = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}.Configuration.configPage.html",
-                    GetType().Namespace)
-            },
-            new PluginPageInfo
-            {
-                Name = "PersonalRatingsManagePage",
-                DisplayName = "我的评分库",
-                EmbeddedResourcePath = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}.Web.manage-page.html",
-                    GetType().Namespace)
-            }
-        ];
+        return PluginPageCatalog.BuildPages(
+            Configuration,
+            GetType().Namespace ?? nameof(Jellyfin.Plugin.PersonalRatings),
+            Name);
     }
 }

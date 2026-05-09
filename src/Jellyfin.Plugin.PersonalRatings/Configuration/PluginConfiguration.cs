@@ -30,7 +30,7 @@ public sealed class PluginConfiguration : BasePluginConfiguration
     /// <summary>
     /// Gets or sets a value indicating whether delete features are enabled.
     /// </summary>
-    public bool EnableDeleteFeature { get; set; }
+    public bool EnableDeleteFeature { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a legacy compatibility flag for physical delete administration.
@@ -46,12 +46,12 @@ public sealed class PluginConfiguration : BasePluginConfiguration
     /// <summary>
     /// Gets or sets a value indicating whether details page injection is enabled.
     /// </summary>
-    public bool EnableDetailsPageInjection { get; set; }
+    public bool EnableDetailsPageInjection { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether the manage page is enabled.
     /// </summary>
-    public bool EnableManagePage { get; set; }
+    public bool EnableManagePage { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the SQLite database file name.

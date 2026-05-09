@@ -11,8 +11,11 @@
     var styleId = 'personalRatingsInjectedStyles';
     var launcherId = 'personalRatingsLauncher';
     var panelClassName = 'personalRatingsDetailPanel';
+    var deleteFeatureEnabled = true;
     var isAdministrator = false;
+    var isFeatureStateLoading = false;
     var isUserContextLoading = false;
+    var managePageEnabled = true;
     var currentRequestVersion = 0;
 
     injectStyles();
@@ -36,13 +39,17 @@
 
     function sync() {
         if (!window.ApiClient || typeof window.ApiClient.isLoggedIn !== 'function' || !window.ApiClient.isLoggedIn()) {
+            deleteFeatureEnabled = true;
             isAdministrator = false;
+            isFeatureStateLoading = false;
             isUserContextLoading = false;
+            managePageEnabled = true;
             removeDetailPanel();
             hideLauncher();
             return;
         }
 
+        ensureFeatureState();
         ensureUserContext();
         ensureLauncher();
 
@@ -243,6 +250,11 @@
     }
 
     function deletePhysical(itemId) {
+        if (!deleteFeatureEnabled) {
+            updateActivePanelMessage(itemId, '物理删除功能当前已被插件配置禁用。');
+            return;
+        }
+
         if (!isAdministrator) {
             updateActivePanelMessage(itemId, '只有管理员可以执行物理删除。');
             return;
@@ -288,6 +300,11 @@
         }).catch(function (error) {
             if (error && error.status === 403) {
                 updateActivePanelMessage(itemId, '只有管理员可以执行物理删除。');
+                return;
+            }
+
+            if (error && error.status === 409) {
+                updateActivePanelMessage(itemId, '物理删除功能当前已被插件配置禁用。');
                 return;
             }
 
@@ -385,10 +402,14 @@
         }
 
         var isManagePage = (window.location.hash || '').indexOf('configurationpage?name=PersonalRatingsManagePage') !== -1;
-        launcher.classList.toggle('is-hidden', isManagePage);
+        launcher.classList.toggle('is-hidden', isManagePage || !managePageEnabled);
     }
 
     function openManagePage() {
+        if (!managePageEnabled) {
+            return;
+        }
+
         if (window.Dashboard && typeof window.Dashboard.navigate === 'function') {
             window.Dashboard.navigate(route);
             return;
@@ -422,6 +443,36 @@
         });
     }
 
+    function ensureFeatureState() {
+        if (isFeatureStateLoading) {
+            return;
+        }
+
+        isFeatureStateLoading = true;
+
+        window.fetch('/Plugins/PersonalRatings/features', {
+            credentials: 'same-origin'
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error('Failed to load plugin feature state.');
+            }
+
+            return response.json();
+        }).then(function (result) {
+            deleteFeatureEnabled = !!(result && result.IsDeleteFeatureEnabled);
+            managePageEnabled = !!(result && result.IsManagePageEnabled);
+            isFeatureStateLoading = false;
+            renderAdminControls(document.querySelector('.' + panelClassName));
+            updateLauncherVisibility();
+        }).catch(function () {
+            deleteFeatureEnabled = true;
+            managePageEnabled = true;
+            isFeatureStateLoading = false;
+            renderAdminControls(document.querySelector('.' + panelClassName));
+            updateLauncherVisibility();
+        });
+    }
+
     function renderAdminControls(panel) {
         if (!panel) {
             return;
@@ -429,7 +480,12 @@
 
         var deleteButton = panel.querySelector('.personalRatingsDeleteButton');
         if (deleteButton) {
-            deleteButton.hidden = !isAdministrator;
+            deleteButton.hidden = !isAdministrator || !deleteFeatureEnabled;
+        }
+
+        var manageButton = panel.querySelector('.personalRatingsManageButton');
+        if (manageButton) {
+            manageButton.hidden = !managePageEnabled;
         }
     }
 

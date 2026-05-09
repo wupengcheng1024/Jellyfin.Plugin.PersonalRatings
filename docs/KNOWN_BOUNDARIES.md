@@ -19,13 +19,14 @@
 
 - 详情页评分面板
 - “我的评分库”管理页
+- 删除审计页
 
 当前不覆盖：
 
 - Android / iOS / TV 原生客户端 UI
 - 非 Web 客户端交互适配
 
-## 3. 配置项已经预留，但仍有部分未真正接线
+## 3. 配置项已接入主流程，但仍保留范围边界
 
 `PluginConfiguration` 中预留了这些配置项：
 
@@ -36,13 +37,22 @@
 - `EnableDetailsPageInjection`
 - `EnableManagePage`
 
-其中有些字段当前只是预留，并没有完整接到所有运行路径。尤其是：
+当前已接线的字段包括：
 
 - `EnableDeleteFeature`
 - `EnableDetailsPageInjection`
 - `EnableManagePage`
 
-当前不应把它们视为“已经完全生效的开关”。
+当前语义：
+
+- `EnableDeleteFeature=false` 会隐藏前端删除入口，并阻断后端物理删除接口
+- `EnableDetailsPageInjection=false` 会停止详情页注入
+- `EnableManagePage=false` 会隐藏管理页与删除审计页入口，并停止相关静态资源暴露
+
+当前仍未处理的字段包括：
+
+- `EnableFavoriteSync`
+- `FavoriteThreshold`
 
 ## 4. 兼容配置项仍然保留
 
@@ -102,12 +112,13 @@
 
 这在 MVP 阶段是可接受的，但在更大数据量下需要进一步优化。
 
-## 9. 管理页仍然借用 Jellyfin 配置页壳
+## 9. 管理页和删除审计页仍然借用 Jellyfin 配置页壳
 
-当前“我的评分库”页面是通过：
+当前“我的评分库”和“删除审计”页面都是通过：
 
 ```text
 #/configurationpage?name=PersonalRatingsManagePage
+#/configurationpage?name=PersonalRatingsAuditPage
 ```
 
 挂进 Jellyfin Web 的配置页壳里，而不是一个完全独立的新路由模块。
@@ -126,11 +137,21 @@
 
 详情页评分 UI 是通过 Web 壳页面注入脚本实现的。对于插件安装前已经打开的 Jellyfin Web 页签，通常需要手动刷新一次，才能拿到新注入的前端逻辑。
 
-## 11. 当前还没有自动化测试项目
+## 11. 当前已有基础自动化测试，但覆盖率仍有限
 
-仓库里已经预留了 `tests/` 目录，但目前没有正式测试项目。当前验证主要依赖：
+仓库里现在已经有正式测试项目，当前主要覆盖：
 
-- `dotnet build`
+- 删除链路 service 级回归测试
+- 审计查询与删除接口的关键 controller 测试
+- 配置开关对页面暴露和注入路径的关键测试
+
+当前仍然没有完整覆盖：
+
+- SQLite Repository 的真实查询与写入行为
+- Web 前端交互的端到端自动化
+- 本地 Jellyfin 10.10.7 真实运行时的完整集成回归
+
+所以当前验证仍然建议保留两层：
+
+- `dotnet build` / `dotnet test`
 - 本地 Jellyfin 10.10.7 手动联调
-
-这足以支撑 MVP 开发，但还不足以支撑长期稳定维护。

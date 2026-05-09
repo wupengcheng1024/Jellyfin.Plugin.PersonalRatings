@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using Jellyfin.Plugin.PersonalRatings.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -15,14 +16,16 @@ namespace Jellyfin.Plugin.PersonalRatings.Controllers;
 [Route("Plugins/PersonalRatings/web")]
 public sealed class WebAssetsController : ControllerBase
 {
+    private readonly IPluginFeatureService _featureService;
     private readonly ILogger<WebAssetsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WebAssetsController"/> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
-    public WebAssetsController(ILogger<WebAssetsController> logger)
+    public WebAssetsController(IPluginFeatureService featureService, ILogger<WebAssetsController> logger)
     {
+        _featureService = featureService;
         _logger = logger;
     }
 
@@ -33,6 +36,11 @@ public sealed class WebAssetsController : ControllerBase
     [HttpGet("details-rating.js")]
     public ActionResult GetDetailsRatingScript()
     {
+        if (!_featureService.IsDetailsPageInjectionEnabled)
+        {
+            return NotFound();
+        }
+
         return GetEmbeddedAsset("details-rating.js", "text/javascript; charset=utf-8");
     }
 
@@ -43,6 +51,11 @@ public sealed class WebAssetsController : ControllerBase
     [HttpGet("manage-page.js")]
     public ActionResult GetManagePageScript()
     {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
         return GetEmbeddedAsset("manage-page.js", "text/javascript; charset=utf-8");
     }
 
@@ -53,7 +66,27 @@ public sealed class WebAssetsController : ControllerBase
     [HttpGet("manage-page.css")]
     public ActionResult GetManagePageStyles()
     {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
         return GetEmbeddedAsset("manage-page.css", "text/css; charset=utf-8");
+    }
+
+    /// <summary>
+    /// Gets the audit page script.
+    /// </summary>
+    /// <returns>The JavaScript asset.</returns>
+    [HttpGet("audit-page.js")]
+    public ActionResult GetAuditPageScript()
+    {
+        if (!_featureService.IsManagePageEnabled)
+        {
+            return NotFound();
+        }
+
+        return GetEmbeddedAsset("audit-page.js", "text/javascript; charset=utf-8");
     }
 
     private ActionResult GetEmbeddedAsset(string fileName, string contentType)

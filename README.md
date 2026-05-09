@@ -11,6 +11,8 @@
 - 详情页评分 UI
 - “我的评分库”管理页
 - 管理员物理删除与删除审计日志
+- 删除审计查询 API 与简易审计页
+- 配置开关接线与删除链路自动化回归测试
 
 ## 当前范围
 
@@ -30,6 +32,7 @@
 - 支持分页、筛选、多选和批量操作
 - 只有管理员可以调用物理删除接口
 - 物理删除会写入 `delete_audit_logs`
+- 管理员可通过审计查询 API 和简易审计页查看删除记录
 
 ## 目录结构
 
@@ -69,6 +72,7 @@
 
 ```bash
 dotnet build src/Jellyfin.Plugin.PersonalRatings/Jellyfin.Plugin.PersonalRatings.csproj
+dotnet test tests/Jellyfin.Plugin.PersonalRatings.Tests/Jellyfin.Plugin.PersonalRatings.Tests.csproj
 dotnet publish src/Jellyfin.Plugin.PersonalRatings/Jellyfin.Plugin.PersonalRatings.csproj -c Release
 ```
 
@@ -84,7 +88,15 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 
 - 插件配置页：`PersonalRatingsConfigPage`
 - 管理页：`#/configurationpage?name=PersonalRatingsManagePage`
+- 删除审计页：`#/configurationpage?name=PersonalRatingsAuditPage`
 - 详情页评分 UI：通过插件中间件向 Jellyfin Web 壳页面注入 `details-rating.js`
+
+当前配置开关行为：
+
+- `EnableDeleteFeature=false` 时，前端隐藏物理删除入口，后端 `delete-physical` 会直接阻断
+- `EnableDetailsPageInjection=false` 时，不再注入 `details-rating.js`
+- `EnableManagePage=false` 时，不再暴露管理页和删除审计页入口，相关前端资源也不会继续提供
+- `RequireAdminForPhysicalDelete` 仅保留为兼容字段，不会重新放开普通用户物理删除
 
 ## 数据存储
 
@@ -110,4 +122,4 @@ SQLite 数据库路径通过 Jellyfin `IApplicationPaths.DataPath` 计算，不�
 
 ## 当前交付结论
 
-当前仓库适合作为 **Jellyfin 10.10.7 Web MVP** 继续迭代，但还不应把它视为“所有边界都已经完全收口”的正式稳定版。发布前请先阅读 [`docs/KNOWN_BOUNDARIES.md`](docs/KNOWN_BOUNDARIES.md)。
+当前仓库适合作为 **Jellyfin 10.10.7 Web MVP** 继续迭代，并且已经具备删除链路自动化回归测试、删除审计查询 API 和基础审计页。但它仍不应被视为“所有边界都已经完全收口”的正式稳定版，发布前请先阅读 [`docs/KNOWN_BOUNDARIES.md`](docs/KNOWN_BOUNDARIES.md)。

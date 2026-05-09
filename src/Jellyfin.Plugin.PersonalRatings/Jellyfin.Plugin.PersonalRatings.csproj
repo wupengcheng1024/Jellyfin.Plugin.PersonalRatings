@@ -13,6 +13,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Jellyfin.Plugin.PersonalRatings.Tests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Jellyfin.Controller" Version="10.10.7">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
@@ -27,11 +36,15 @@
   <ItemGroup>
     <None Remove="Configuration\configPage.html" />
     <None Remove="Web\details-rating.js" />
+    <None Remove="Web\audit-page.html" />
+    <None Remove="Web\audit-page.js" />
     <None Remove="Web\manage-page.css" />
     <None Remove="Web\manage-page.html" />
     <None Remove="Web\manage-page.js" />
     <EmbeddedResource Include="Configuration\configPage.html" />
     <EmbeddedResource Include="Web\details-rating.js" />
+    <EmbeddedResource Include="Web\audit-page.html" />
+    <EmbeddedResource Include="Web\audit-page.js" />
     <EmbeddedResource Include="Web\manage-page.css" />
     <EmbeddedResource Include="Web\manage-page.html" />
     <EmbeddedResource Include="Web\manage-page.js" />

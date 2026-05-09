@@ -19,6 +19,10 @@
                 sortBy: 'updatedAt',
                 sortOrder: 'desc',
                 keyword: '',
+                features: {
+                    deleteEnabled: true,
+                    manageEnabled: true
+                },
                 isAdministrator: false,
                 adminContextLoaded: false,
                 selectedItemIds: {},
@@ -29,7 +33,10 @@
 
             this.bindEvents(page);
             this.loadUserContext(page);
-            this.safeLoad(page);
+            this.loadFeatureState(page).finally(function () {
+                ManagePage.renderAdminControls(page);
+                ManagePage.safeLoad(page);
+            });
 
             page.addEventListener('pageshow', function () {
                 ManagePage.safeLoad(page);
@@ -282,6 +289,11 @@
                     ManagePage.getState(page).selectedItemIds = {};
                     ManagePage.safeLoad(page);
                 }).catch(function (error) {
+                    if (action === 'deletePhysical' && error && error.status === 409) {
+                        ManagePage.setStatus(page, '物理删除功能当前已被插件配置禁用。', 'error');
+                        return;
+                    }
+
                     ManagePage.handleRequestError(page, error, '批量操作失败。');
                 });
             } catch (error) {
@@ -313,11 +325,39 @@
         },
 
         safeLoad: function (page) {
+            var state = this.getState(page);
+            if (!state.features.manageEnabled) {
+                this.renderFeatureDisabled(page, '“我的评分库”功能当前已被插件配置禁用。');
+                return;
+            }
+
             try {
                 this.load(page);
             } catch (error) {
                 this.handleRequestError(page, error, '当前页面未取得 Jellyfin Web 的登录上下文。');
             }
+        },
+
+        loadFeatureState: function (page) {
+            return fetch('/Plugins/PersonalRatings/features', {
+                credentials: 'same-origin'
+            }).then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Failed to load plugin feature state.');
+                }
+
+                return response.json();
+            }).then(function (result) {
+                var state = ManagePage.getState(page);
+                state.features.deleteEnabled = !!(result && result.IsDeleteFeatureEnabled);
+                state.features.manageEnabled = !!(result && result.IsManagePageEnabled);
+                ManagePage.renderAdminControls(page);
+            }).catch(function () {
+                var state = ManagePage.getState(page);
+                state.features.deleteEnabled = true;
+                state.features.manageEnabled = true;
+                ManagePage.renderAdminControls(page);
+            });
         },
 
         loadUserContext: function (page) {
@@ -566,6 +606,10 @@
             page.querySelectorAll('.personalRatingsAdminOnly').forEach(function (element) {
                 element.hidden = !state.isAdministrator;
             });
+
+            page.querySelectorAll('.personalRatingsDeleteFeatureOnly').forEach(function (element) {
+                element.hidden = !state.isAdministrator || !state.features.deleteEnabled;
+            });
         },
 
         getFirstPhysicalDeleteAttentionItem: function (result) {
@@ -623,6 +667,14 @@
             }
 
             this.setStatus(page, message, 'error');
+        },
+
+        renderFeatureDisabled: function (page, message) {
+            page.querySelector('.personalRatingsRows').innerHTML = '<tr><td colspan="7" class="personalRatingsEmptyState">' + this.escapeHtml(message) + '</td></tr>';
+            page.querySelector('.personalRatingsSummaryText').textContent = message;
+            this.setStatus(page, message, 'error');
+            page.querySelector('.personalRatingsPrevPageButton').disabled = true;
+            page.querySelector('.personalRatingsNextPageButton').disabled = true;
         },
 
         postJson: function (path, payload) {

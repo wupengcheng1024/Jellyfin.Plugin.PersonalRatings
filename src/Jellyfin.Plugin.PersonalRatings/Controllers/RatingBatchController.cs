@@ -184,6 +184,7 @@ public sealed class RatingBatchController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PhysicalDeleteResponse>> DeletePhysical([FromBody] BatchPhysicalDeleteRequest request, CancellationToken cancellationToken)
     {
@@ -218,6 +219,11 @@ public sealed class RatingBatchController : ControllerBase
         {
             _logger.LogWarning(exception, "Rejected physical delete request for user {UserId}", userId);
             return Forbid();
+        }
+        catch (FeatureDisabledException exception)
+        {
+            _logger.LogWarning(exception, "Blocked physical delete request for user {UserId} because delete features are disabled", userId);
+            return Conflict(exception.Message);
         }
         catch (Exception exception)
         {

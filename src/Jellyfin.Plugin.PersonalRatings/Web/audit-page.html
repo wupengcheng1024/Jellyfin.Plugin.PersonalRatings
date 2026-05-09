@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <title>删除审计</title>
+</head>
+<body>
+    <div id="personalRatingsAuditPage" data-role="page" class="page type-interior pluginConfigurationPage configPage personalRatingsManagePage personalRatingsAuditPage" data-title="删除审计" data-backbutton="true" data-require="emby-button,emby-input,emby-select">
+        <div data-role="content">
+            <div class="content-primary">
+                <section class="personalRatingsHero">
+                    <div>
+                        <p class="personalRatingsEyebrow">Jellyfin.PersonalRatings</p>
+                        <h1>删除审计</h1>
+                        <p class="personalRatingsHeroText">这里先提供管理员可用的最小审计列表：按时间、结果、关键词和条目 ID 查看物理删除相关记录。</p>
+                    </div>
+                    <div class="personalRatingsHeroActions" style="gap: 12px; flex-wrap: wrap;">
+                        <a is="emby-linkbutton" class="button-flat" href="#/configurationpage?name=PersonalRatingsManagePage">返回我的评分库</a>
+                        <button is="emby-button" type="button" class="raised button-submit personalRatingsAuditRefreshButton">
+                            <span>刷新审计</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="personalRatingsPanel">
+                    <form class="personalRatingsToolbar personalRatingsAuditSearchForm">
+                        <div class="personalRatingsToolbarGroup">
+                            <label class="personalRatingsField">
+                                <span>关键词</span>
+                                <input is="emby-input" type="text" class="txtAuditKeyword" placeholder="条目名 / 说明 / 动作" />
+                            </label>
+                            <label class="personalRatingsField">
+                                <span>条目 ID</span>
+                                <input is="emby-input" type="text" class="txtAuditItemId" placeholder="GUID" />
+                            </label>
+                            <label class="personalRatingsField personalRatingsCompactField">
+                                <span>结果</span>
+                                <select is="emby-select" class="selectAuditResult">
+                                    <option value="">全部</option>
+                                    <option value="requested">requested</option>
+                                    <option value="deleted">deleted</option>
+                                    <option value="deleteFailed">deleteFailed</option>
+                                    <option value="forbidden">forbidden</option>
+                                    <option value="notFound">notFound</option>
+                                    <option value="auditUnavailable">auditUnavailable</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="personalRatingsToolbarGroup">
+                            <label class="personalRatingsField">
+                                <span>开始时间</span>
+                                <input is="emby-input" type="datetime-local" class="txtAuditCreatedAfter" />
+                            </label>
+                            <label class="personalRatingsField">
+                                <span>结束时间</span>
+                                <input is="emby-input" type="datetime-local" class="txtAuditCreatedBefore" />
+                            </label>
+                            <label class="personalRatingsField personalRatingsCompactField">
+                                <span>每页</span>
+                                <select is="emby-select" class="selectAuditPageSize">
+                                    <option value="10">10</option>
+                                    <option value="25" selected="selected">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </label>
+                            <button is="emby-button" type="submit" class="raised button-submit">
+                                <span>查询</span>
+                            </button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsAuditClearButton">
+                                <span>清空</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="personalRatingsPanel">
+                    <div class="personalRatingsFeedback">
+                        <div class="personalRatingsAuditSummaryText personalRatingsSummaryText">正在准备审计列表...</div>
+                        <div class="personalRatingsAuditStatusText personalRatingsStatusText" aria-live="polite"></div>
+                    </div>
+
+                    <div class="personalRatingsTableWrap">
+                        <table class="personalRatingsTable">
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>结果</th>
+                                    <th>条目</th>
+                                    <th>说明</th>
+                                    <th>操作人</th>
+                                </tr>
+                            </thead>
+                            <tbody class="personalRatingsAuditRows"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="personalRatingsPagination">
+                        <button is="emby-button" type="button" class="button-flat personalRatingsAuditPrevPageButton">
+                            <span>上一页</span>
+                        </button>
+                        <div class="personalRatingsAuditPageText personalRatingsPageText">第 1 页</div>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsAuditNextPageButton">
+                            <span>下一页</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                var page = document.querySelector('.personalRatingsAuditPage');
+                var stylesheetId = 'personalRatingsManagePageStylesheet';
+                var scriptId = 'personalRatingsAuditPageScript';
+
+                if (!document.getElementById(stylesheetId)) {
+                    var stylesheet = document.createElement('link');
+                    stylesheet.id = stylesheetId;
+                    stylesheet.rel = 'stylesheet';
+                    stylesheet.href = '/Plugins/PersonalRatings/web/manage-page.css';
+                    document.head.appendChild(stylesheet);
+                }
+
+                function registerWhenReady() {
+                    if (window.PersonalRatingsAuditPage && typeof window.PersonalRatingsAuditPage.register === 'function') {
+                        window.PersonalRatingsAuditPage.register(page);
+                    } else {
+                        window.setTimeout(registerWhenReady, 50);
+                    }
+                }
+
+                if (!document.getElementById(scriptId)) {
+                    var script = document.createElement('script');
+                    script.id = scriptId;
+                    script.src = '/Plugins/PersonalRatings/web/audit-page.js';
+                    script.onload = registerWhenReady;
+                    document.body.appendChild(script);
+                } else {
+                    registerWhenReady();
+                }
+            })();
+        </script>
+    </div>
+</body>
+</html>

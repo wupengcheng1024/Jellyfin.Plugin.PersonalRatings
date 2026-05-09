@@ -9,8 +9,8 @@
         <div data-role="content">
             <div class="content-primary" style="max-width: 860px;">
                 <h1>Jellyfin Personal Ratings</h1>
-                <p>当前插件已启用个人评分详情页注入和“我的评分库”页面。</p>
-                <p>这一阶段优先提供可运行的 Web MVP：详情页打分、清分、待删除切换，以及分页查询和批量改分入口。</p>
+                <p id="personalRatingsConfigIntro">当前插件提供 Jellyfin Web MVP：详情页打分、清分、待删除切换，以及“我的评分库”分页管理入口。</p>
+                <p id="personalRatingsConfigStatusText">正在读取功能开关状态...</p>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
                     <button is="emby-button" type="button" class="raised button-submit" id="openManagePageButton">
                         <span>打开我的评分库</span>
@@ -28,8 +28,12 @@
         <script type="text/javascript">
             (function () {
                 var route = 'configurationpage?name=PersonalRatingsManagePage';
+                var openButton = document.querySelector('#openManagePageButton');
+                var copyButton = document.querySelector('#copyManageUrlButton');
+                var statusText = document.querySelector('#personalRatingsConfigStatusText');
+                var routeText = document.querySelector('#managePageUrlText');
 
-                document.querySelector('#openManagePageButton').addEventListener('click', function () {
+                openButton.addEventListener('click', function () {
                     if (window.Dashboard && typeof window.Dashboard.navigate === 'function') {
                         window.Dashboard.navigate(route);
                         return;
@@ -38,10 +42,33 @@
                     window.location.hash = '#/' + route;
                 });
 
-                document.querySelector('#copyManageUrlButton').addEventListener('click', function () {
+                copyButton.addEventListener('click', function () {
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText('#/' + route);
                     }
+                });
+
+                fetch('/Plugins/PersonalRatings/features', {
+                    credentials: 'same-origin'
+                }).then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to load plugin feature state.');
+                    }
+
+                    return response.json();
+                }).then(function (result) {
+                    var manageEnabled = !!(result && result.IsManagePageEnabled);
+                    if (manageEnabled) {
+                        statusText.textContent = '当前已启用“我的评分库”页面入口；删除审计入口会在管理员进入管理页后显示。';
+                        return;
+                    }
+
+                    statusText.textContent = '当前配置已禁用“我的评分库”页面入口。';
+                    openButton.hidden = true;
+                    copyButton.hidden = true;
+                    routeText.textContent = '管理页已禁用';
+                }).catch(function () {
+                    statusText.textContent = '未能读取功能开关状态，默认继续显示管理页入口。';
                 });
             })();
         </script>

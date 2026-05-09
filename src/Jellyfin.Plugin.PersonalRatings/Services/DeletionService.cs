@@ -20,6 +20,7 @@ internal sealed class DeletionService : IDeletionService
     private const string AuditStatusCompleted = "completed";
     private const string AuditStatusNone = "none";
     private readonly IDeleteAuditLogRepository _deleteAuditLogRepository;
+    private readonly IPluginFeatureService _featureService;
     private readonly IJellyfinDeletionAdapter _jellyfinDeletionAdapter;
     private readonly ILogger<DeletionService> _logger;
     private readonly IRatingRepository _ratingRepository;
@@ -29,12 +30,14 @@ internal sealed class DeletionService : IDeletionService
         IUserManager userManager,
         IRatingRepository ratingRepository,
         IDeleteAuditLogRepository deleteAuditLogRepository,
+        IPluginFeatureService featureService,
         IJellyfinDeletionAdapter jellyfinDeletionAdapter,
         ILogger<DeletionService> logger)
     {
         _userManager = userManager;
         _ratingRepository = ratingRepository;
         _deleteAuditLogRepository = deleteAuditLogRepository;
+        _featureService = featureService;
         _jellyfinDeletionAdapter = jellyfinDeletionAdapter;
         _logger = logger;
     }
@@ -45,6 +48,11 @@ internal sealed class DeletionService : IDeletionService
         bool confirmDelete,
         CancellationToken cancellationToken)
     {
+        if (!_featureService.IsDeleteFeatureEnabled)
+        {
+            throw new FeatureDisabledException("Physical delete is disabled by plugin configuration.");
+        }
+
         if (!confirmDelete)
         {
             throw new ArgumentException("Physical delete requires confirmDelete=true.", nameof(confirmDelete));

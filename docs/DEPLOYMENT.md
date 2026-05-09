@@ -14,6 +14,7 @@
 
 ```bash
 dotnet build src/Jellyfin.Plugin.PersonalRatings/Jellyfin.Plugin.PersonalRatings.csproj
+dotnet test tests/Jellyfin.Plugin.PersonalRatings.Tests/Jellyfin.Plugin.PersonalRatings.Tests.csproj
 ```
 
 如果只想生成部署产物：
@@ -81,7 +82,13 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 
 6. 验证分页加载、筛选和批量操作。
 7. 使用管理员账号验证物理删除。
-8. 确认数据库中出现 `delete_audit_logs` 记录。
+8. 打开删除审计页并确认能看到刚才的删除记录：
+
+   ```text
+   #/configurationpage?name=PersonalRatingsAuditPage
+   ```
+
+9. 确认数据库中出现 `delete_audit_logs` 记录。
 
 ## 常见问题
 
@@ -109,8 +116,23 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
 
 - 当前用户是否为管理员
 - 请求体里是否传了 `confirmDelete = true`
+- 当前插件配置是否启用了 `EnableDeleteFeature`
 - 目标条目是否仍存在
 - Jellyfin 本身是否有权删除底层媒体路径
+
+### 4. 管理页或审计页入口消失
+
+先确认：
+
+- 当前插件配置里的 `EnableManagePage` 是否为 `true`
+- 当前页面是否已经刷新到新版本前端资源
+
+### 5. 详情页评分面板完全不注入
+
+先确认：
+
+- 当前插件配置里的 `EnableDetailsPageInjection` 是否为 `true`
+- 当前访问路径是否仍是 Jellyfin Web 壳页面 `/web/index.html`
 
 ## 升级注意事项
 
@@ -120,10 +142,10 @@ src/Jellyfin.Plugin.PersonalRatings/bin/Release/net8.0/publish/
   - Web 注入点
   - 用户权限读取方式
 
-## 生产前建议
+## 当前验证基线
 
-在更广范围部署前，建议先完成以下工作：
+当前仓库建议至少保留这 3 步作为每次修改后的快速验证：
 
-- 为删除链路补自动化回归测试
-- 自动化测试补齐
-- 删除审计查询能力
+- `dotnet build src/Jellyfin.Plugin.PersonalRatings/Jellyfin.Plugin.PersonalRatings.csproj`
+- `dotnet test tests/Jellyfin.Plugin.PersonalRatings.Tests/Jellyfin.Plugin.PersonalRatings.Tests.csproj`
+- 在本地 Jellyfin 10.10.7 Web 里手动验证详情页、管理页和删除审计页

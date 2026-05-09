@@ -14,7 +14,10 @@
                         <h1>我的评分库</h1>
                         <p class="personalRatingsHeroText">先做后端稳态，再把个人评分的日常管理收口到一个页面里。这里支持预设视图、分页查询、多选和批量操作。</p>
                     </div>
-                    <div class="personalRatingsHeroActions">
+                    <div class="personalRatingsHeroActions" style="gap: 12px; flex-wrap: wrap;">
+                        <a is="emby-linkbutton" type="button" class="button-flat personalRatingsAdminOnly" href="#/configurationpage?name=PersonalRatingsAuditPage" hidden="hidden">
+                            <span>删除审计</span>
+                        </a>
                         <button is="emby-button" type="button" class="raised button-submit personalRatingsRefreshButton">
                             <span>刷新列表</span>
                         </button>
@@ -87,7 +90,7 @@
                             <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="clear">清除评分</button>
                             <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="pendingOn">标记待删除</button>
                             <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="pendingOff">取消待删除</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton personalRatingsDangerButton personalRatingsAdminOnly" data-batch-action="deletePhysical" hidden="hidden">物理删除</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton personalRatingsDangerButton personalRatingsAdminOnly personalRatingsDeleteFeatureOnly" data-batch-action="deletePhysical" hidden="hidden">物理删除</button>
                         </div>
                     </div>
                 </section>
