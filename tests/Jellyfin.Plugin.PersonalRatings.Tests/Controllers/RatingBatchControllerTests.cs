@@ -53,6 +53,36 @@ public sealed class RatingBatchControllerTests
     }
 
     [Fact]
+    public async Task AddTags_ReturnsBadRequest_WhenServiceRejectsInvalidTagRequest()
+    {
+        Guid userId = Guid.NewGuid();
+        Guid itemId = Guid.NewGuid();
+        Mock<IRatingService> ratingService = new(MockBehavior.Strict);
+        Mock<ITagService> tagService = new(MockBehavior.Strict);
+        Mock<IDeletionService> deletionService = new(MockBehavior.Strict);
+        tagService
+            .Setup(service => service.BatchAddTagsAsync(
+                userId,
+                It.Is<IReadOnlyList<Guid>>(ids => ids.Count == 1 && ids[0] == itemId),
+                It.Is<IReadOnlyList<long>>(ids => ids.Count == 1 && ids[0] == 999),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentException("Only enabled tags can be assigned to items.", "tagIds"));
+
+        RatingBatchController controller = CreateController(userId, ratingService, tagService, deletionService);
+
+        ActionResult<BatchOperationResponse> actionResult = await controller.AddTags(
+            new BatchTagRequest
+            {
+                ItemIds = [itemId.ToString("D")],
+                TagIds = [999]
+            },
+            CancellationToken.None);
+
+        BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        Assert.Contains("enabled", badRequestResult.Value!.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task RemoveTags_ReturnsNotFound_WhenServiceCannotAccessItem()
     {
         Guid userId = Guid.NewGuid();

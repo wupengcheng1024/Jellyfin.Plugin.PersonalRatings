@@ -81,11 +81,14 @@
                         <div class="personalRatingsTagFilterHeader">
                             <div>
                                 <strong>标签筛选</strong>
-                                <div class="personalRatingsBatchHint">使用已启用标签缩小后台列表范围，再次点击标签可取消筛选。</div>
+                                <div class="personalRatingsBatchHint">使用已启用标签缩小后台列表范围，再次点击标签可取消筛选；多选时可指定命中任一标签或全部标签。</div>
                             </div>
-                            <div class="personalRatingsTagFilterSummaryText">当前未启用标签筛选。</div>
+                            <div class="personalRatingsTagFilterSummary">
+                                <div class="personalRatingsTagFilterSummaryText">当前未启用标签筛选。</div>
+                                <div class="personalRatingsTagList personalRatingsFilterStateList"></div>
+                            </div>
                         </div>
-                        <div class="personalRatingsTagFilterEmpty" hidden="hidden">
+                        <div class="personalRatingsEmptyBlock personalRatingsTagFilterEmpty" hidden="hidden">
                             当前还没有可用标签。请先前往 <a is="emby-linkbutton" class="button-link" href="#/configurationpage?name=PersonalRatingsTagManagePage">标签管理</a> 创建并启用标签。
                         </div>
                         <div class="personalRatingsTagList personalRatingsFilterTagList"></div>
@@ -93,8 +96,8 @@
                             <label class="personalRatingsField personalRatingsCompactField personalRatingsFilterTagMatchField" hidden="hidden">
                                 <span>标签匹配</span>
                                 <select is="emby-select" class="selectFilterTagMatch">
-                                    <option value="any">匹配任一标签</option>
-                                    <option value="all">必须同时包含</option>
+                                    <option value="any">命中任一已选标签</option>
+                                    <option value="all">必须同时包含全部已选标签</option>
                                 </select>
                             </label>
                             <button is="emby-button" type="button" class="button-flat personalRatingsClearTagFiltersButton">
@@ -129,15 +132,18 @@
                                 <strong>批量标签</strong>
                                 <div class="personalRatingsBatchHint">为当前选中的条目批量添加或移除标签，操作完成后会刷新当前列表。</div>
                             </div>
-                            <div class="personalRatingsBatchTagSelectionText">当前未选择标签。</div>
+                            <div class="personalRatingsBatchTagSelectionMeta">
+                                <div class="personalRatingsBatchTagTargetText">当前还没有选中条目。</div>
+                                <div class="personalRatingsBatchTagSelectionText">当前未选择标签。</div>
+                            </div>
                         </div>
-                        <div class="personalRatingsBatchTagEmpty" hidden="hidden">
+                        <div class="personalRatingsEmptyBlock personalRatingsBatchTagEmpty" hidden="hidden">
                             当前还没有可用标签。请先前往 <a is="emby-linkbutton" class="button-link" href="#/configurationpage?name=PersonalRatingsTagManagePage">标签管理</a> 创建并启用标签。
                         </div>
                         <div class="personalRatingsTagList personalRatingsBatchTagList"></div>
                         <div class="personalRatingsBatchActions personalRatingsBatchTagActions">
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchTagApplyButton" data-tag-batch-action="add">批量添加标签</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchTagApplyButton" data-tag-batch-action="remove">批量移除标签</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchTagApplyButton personalRatingsBatchTagApplyAdd" data-tag-batch-action="add">批量添加标签</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchTagApplyButton personalRatingsBatchTagApplyRemove" data-tag-batch-action="remove">批量移除标签</button>
                         </div>
                     </div>
                 </section>

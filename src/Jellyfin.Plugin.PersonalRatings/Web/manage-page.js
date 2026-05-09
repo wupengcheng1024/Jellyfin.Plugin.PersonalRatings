@@ -137,12 +137,12 @@
             var selectedItemIds = ManagePage.getSelectedItemIds(page);
             var selectedTagIds = this.getSelectedTagIds(page);
             if (selectedItemIds.length === 0) {
-                ManagePage.setStatus(page, '请先选择至少一个条目，再执行批量标签操作。', 'error');
+                ManagePage.setStatus(page, '请先在当前页勾选至少一个条目，再执行批量标签操作。', 'error');
                 return;
             }
 
             if (selectedTagIds.length === 0) {
-                ManagePage.setStatus(page, '请先选择至少一个标签。', 'error');
+                ManagePage.setStatus(page, '请先选择至少一个要操作的标签。', 'error');
                 return;
             }
 
@@ -159,19 +159,29 @@
                     tagIds: selectedTagIds
                 });
             } catch (error) {
-                ManagePage.handleRequestError(page, error, '批量标签操作失败。');
+                ManagePage.handleRequestError(
+                    page,
+                    error,
+                    operation === 'add'
+                        ? '批量添加标签失败。请确认标签仍然可用，且当前条目仍可访问。'
+                        : '批量移除标签失败。请确认标签仍然可用，且当前条目仍可访问。');
                 return;
             }
 
             request.then(function (result) {
                 var affectedCount = result && typeof result.AffectedCount === 'number' ? result.AffectedCount : 0;
                 var verb = operation === 'add' ? '添加' : '移除';
-                ManagePage.setStatus(page, '批量' + verb + '标签已完成。已影响 ' + affectedCount + ' 条记录。标签：' + selectedTagNames, 'success');
+                ManagePage.setStatus(page, '已为 ' + affectedCount + ' 条记录批量' + verb + '标签：' + selectedTagNames + '。', 'success');
                 ManagePage.getState(page).selectedItemIds = {};
                 ManagePage.safeLoad(page);
                 ManagePageTagHelper.renderPanel(page);
             }).catch(function (error) {
-                ManagePage.handleRequestError(page, error, '批量标签操作失败。');
+                ManagePage.handleRequestError(
+                    page,
+                    error,
+                    operation === 'add'
+                        ? '批量添加标签失败。请确认标签仍然可用，且当前条目仍可访问。'
+                        : '批量移除标签失败。请确认标签仍然可用，且当前条目仍可访问。');
             });
         },
 
@@ -180,6 +190,7 @@
             var panel = page.querySelector('.personalRatingsBatchTagPanel');
             var list = page.querySelector('.personalRatingsBatchTagList');
             var empty = page.querySelector('.personalRatingsBatchTagEmpty');
+            var targetText = page.querySelector('.personalRatingsBatchTagTargetText');
             var selectionText = page.querySelector('.personalRatingsBatchTagSelectionText');
             var selectedItemCount = ManagePage.getSelectedItemIds(page).length;
             var selectedTagIds = state.selectedBatchTagIds || [];
@@ -215,16 +226,32 @@
                 }).join('');
             }
 
-            if (selectedTagNames.length > 0) {
-                selectionText.textContent = '将要操作的标签：' + selectedTagNames.join(' / ');
-            } else if (!state.availableTags.length) {
-                selectionText.textContent = '当前没有可用标签。';
+            if (selectedItemCount > 0) {
+                targetText.textContent = '当前已选 ' + selectedItemCount + ' 个条目，可直接批量处理标签。';
             } else {
-                selectionText.textContent = '当前未选择标签。';
+                targetText.textContent = '当前还没有选中条目。请先在列表里勾选后再处理标签。';
+            }
+
+            if (!state.availableTags.length) {
+                selectionText.textContent = '当前没有可操作标签。先到标签管理页创建并启用标签。';
+            } else if (selectedTagNames.length > 0) {
+                selectionText.textContent = '将要操作的标签：' + selectedTagNames.join(' / ');
+            } else {
+                selectionText.textContent = '当前未选择标签。请先点选下方标签，再执行添加或移除。';
             }
 
             page.querySelectorAll('.personalRatingsBatchTagApplyButton').forEach(function (button) {
-                button.disabled = selectedItemCount === 0 || selectedTagIds.length === 0 || state.availableTags.length === 0;
+                var disabledReason = '';
+                if (selectedItemCount === 0) {
+                    disabledReason = '请先选择条目';
+                } else if (state.availableTags.length === 0) {
+                    disabledReason = '当前没有可用标签';
+                } else if (selectedTagIds.length === 0) {
+                    disabledReason = '请先选择标签';
+                }
+
+                button.disabled = disabledReason.length > 0;
+                button.title = disabledReason;
             });
         },
 
@@ -233,16 +260,22 @@
             var list = page.querySelector('.personalRatingsFilterTagList');
             var empty = page.querySelector('.personalRatingsTagFilterEmpty');
             var summary = page.querySelector('.personalRatingsTagFilterSummaryText');
+            var stateList = page.querySelector('.personalRatingsFilterStateList');
             var matchField = page.querySelector('.personalRatingsFilterTagMatchField');
             var selectedTagIds = state.selectedFilterTagIds || [];
             var selectedTagNames = this.getSelectedFilterTagNames(page);
+            var otherActiveFilters = ManagePage.getOtherActiveFilterLabels(state);
             var clearButton = page.querySelector('.personalRatingsClearTagFiltersButton');
 
             if (state.isTagLoading && !state.tagsLoaded) {
                 list.innerHTML = '<span class="personalRatingsTag">正在加载标签...</span>';
+                stateList.innerHTML = '';
                 empty.hidden = true;
             } else if (!state.availableTags.length) {
                 list.innerHTML = '';
+                stateList.innerHTML = otherActiveFilters.map(function (text) {
+                    return '<span class="personalRatingsTag personalRatingsFilterStateChip">' + ManagePage.escapeHtml(text) + '</span>';
+                }).join('');
                 empty.hidden = false;
             } else {
                 empty.hidden = true;
@@ -257,20 +290,30 @@
                         + ManagePage.escapeHtml(tag.Name)
                         + '</button>';
                 }).join('');
+
+                stateList.innerHTML = ManagePage.buildActiveFilterBadges(selectedTagNames, state.tagMatchMode, otherActiveFilters);
             }
 
-            if (selectedTagNames.length > 0) {
-                summary.textContent = '当前标签筛选：' + selectedTagNames.join(' / ')
-                    + (selectedTagNames.length > 1 ? '（' + (state.tagMatchMode === 'all' ? '必须同时包含' : '匹配任一标签') + '）' : '');
+            if (state.isTagLoading && !state.tagsLoaded) {
+                summary.textContent = '正在加载可用标签...';
             } else if (!state.availableTags.length) {
-                summary.textContent = '当前没有可用标签筛选。';
+                summary.textContent = '当前还没有启用标签。请先到标签管理页创建并启用后再筛选。';
+            } else if (selectedTagNames.length > 0) {
+                summary.textContent = '已启用 ' + selectedTagNames.length + ' 个标签筛选'
+                    + (otherActiveFilters.length > 0 ? '，同时还有 ' + otherActiveFilters.length + ' 项其它筛选条件。' : '。');
+            } else if (otherActiveFilters.length > 0) {
+                summary.textContent = '当前未启用标签筛选，另有 ' + otherActiveFilters.length + ' 项其它筛选条件正在生效。';
             } else {
-                summary.textContent = '当前未启用标签筛选。';
+                summary.textContent = '可直接点击标签缩小列表范围。';
             }
 
             matchField.hidden = selectedTagIds.length <= 1;
             page.querySelector('.selectFilterTagMatch').value = state.tagMatchMode || 'any';
             clearButton.disabled = selectedTagIds.length === 0;
+            clearButton.title = selectedTagIds.length === 0 ? '当前没有标签筛选可清空' : '';
+            clearButton.querySelector('span').textContent = selectedTagIds.length > 0
+                ? '清空标签筛选（' + selectedTagIds.length + '）'
+                : '清空标签筛选';
         },
 
         renderAssignedTags: function (tags) {
@@ -795,7 +838,7 @@
             });
 
             if (items.length === 0) {
-                rowsContainer.innerHTML = '<tr><td colspan="7" class="personalRatingsEmptyState">当前筛选条件下没有记录。</td></tr>';
+                rowsContainer.innerHTML = '<tr><td colspan="7" class="personalRatingsEmptyState">' + ManagePage.escapeHtml(ManagePage.buildEmptyStateMessage(state)) + '</td></tr>';
             } else {
                 rowsContainer.innerHTML = items.map(function (item) {
                     var itemName = ManagePage.escapeHtml(item.ItemName || item.ItemId);
@@ -875,6 +918,11 @@
 
         renderSummary: function (page, result) {
             var totalCount = result.TotalCount || 0;
+            if (totalCount === 0) {
+                page.querySelector('.personalRatingsSummaryText').textContent = this.buildEmptyStateMessage(this.getState(page));
+                return;
+            }
+
             var pageNumber = result.PageNumber || 1;
             var pageSize = result.PageSize || this.getState(page).pageSize || 25;
             var startIndex = totalCount === 0 ? 0 : ((pageNumber - 1) * pageSize) + 1;
@@ -1027,8 +1075,11 @@
 
         handleRequestError: function (page, error, fallbackMessage) {
             var message = fallbackMessage;
+            var detail = this.extractRequestErrorMessage(error);
 
-            if (error && typeof error.status === 'number') {
+            if (detail) {
+                message += ' ' + detail;
+            } else if (error && typeof error.status === 'number') {
                 message += ' HTTP ' + error.status + '.';
             } else if (error && error.message) {
                 message += ' ' + error.message;
@@ -1123,6 +1174,111 @@
             var green = parseInt(value.substring(2, 4), 16);
             var blue = parseInt(value.substring(4, 6), 16);
             return 'rgba(' + red + ', ' + green + ', ' + blue + ', ' + alpha + ')';
+        },
+
+        buildActiveFilterBadges: function (selectedTagNames, tagMatchMode, otherActiveFilters) {
+            var badges = [];
+            selectedTagNames.forEach(function (tagName) {
+                badges.push('标签：' + tagName);
+            });
+
+            if (selectedTagNames.length > 1) {
+                badges.push('标签匹配：' + (tagMatchMode === 'all' ? '全部命中' : '命中任一'));
+            }
+
+            otherActiveFilters.forEach(function (text) {
+                badges.push(text);
+            });
+
+            return badges.map(function (text) {
+                return '<span class="personalRatingsTag personalRatingsFilterStateChip">' + ManagePage.escapeHtml(text) + '</span>';
+            }).join('');
+        },
+
+        getOtherActiveFilterLabels: function (state) {
+            var labels = [];
+            if (state.keyword) {
+                labels.push('关键词：' + state.keyword);
+            }
+
+            if (state.preset && state.preset !== 'ratedAll') {
+                labels.push('视图：' + this.getPresetLabel(state.preset));
+            }
+
+            return labels;
+        },
+
+        getPresetLabel: function (preset) {
+            switch (preset) {
+                case 'score5':
+                    return '5分';
+                case 'score4':
+                    return '4分';
+                case 'score3':
+                    return '3分';
+                case 'score2':
+                    return '2分';
+                case 'score1':
+                    return '1分';
+                case 'unrated':
+                    return '未评分';
+                case 'pendingDelete':
+                    return '待删除';
+                case 'recent':
+                    return '最近评分';
+                case 'playedUnrated':
+                    return '已播放未评分';
+                case 'ratedAll':
+                default:
+                    return '全部已评分';
+            }
+        },
+
+        hasActiveFilters: function (state) {
+            return !!(state.keyword
+                || (state.selectedFilterTagIds && state.selectedFilterTagIds.length > 0)
+                || (state.preset && state.preset !== 'ratedAll'));
+        },
+
+        buildEmptyStateMessage: function (state) {
+            if (this.hasActiveFilters(state)) {
+                return '当前筛选条件没有命中记录。可以清空标签筛选、调整关键词或切换预设后重试。';
+            }
+
+            return '当前还没有评分记录。先在前台“打分库”或详情页打分后，这里会显示条目。';
+        },
+
+        extractRequestErrorMessage: function (error) {
+            if (!error) {
+                return '';
+            }
+
+            if (error.responseJSON) {
+                if (typeof error.responseJSON === 'string') {
+                    return error.responseJSON;
+                }
+
+                if (error.responseJSON.detail) {
+                    return error.responseJSON.detail;
+                }
+
+                if (error.responseJSON.title) {
+                    return error.responseJSON.title;
+                }
+
+                if (error.responseJSON.errors) {
+                    var firstKey = Object.keys(error.responseJSON.errors)[0];
+                    if (firstKey && Array.isArray(error.responseJSON.errors[firstKey]) && error.responseJSON.errors[firstKey].length > 0) {
+                        return error.responseJSON.errors[firstKey][0];
+                    }
+                }
+            }
+
+            if (typeof error.responseText === 'string' && error.responseText.trim().length > 0) {
+                return error.responseText.replace(/^"+|"+$/g, '').trim();
+            }
+
+            return '';
         }
     };
 
