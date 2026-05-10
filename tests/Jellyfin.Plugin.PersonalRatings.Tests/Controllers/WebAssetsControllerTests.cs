@@ -110,13 +110,65 @@ public sealed class WebAssetsControllerTests
         FileStreamResult result = Assert.IsType<FileStreamResult>(controller.GetBrowseShellScript());
         string content = ReadContent(result);
 
-        Assert.DoesNotContain("MutationObserver", content, StringComparison.Ordinal);
         Assert.Contains("findPrimaryHeaderTabsHost", content, StringComparison.Ordinal);
+        Assert.Contains("rememberHeaderTabsMarkup", content, StringComparison.Ordinal);
+        Assert.Contains("restoreHeaderTabsMarkupIfNeeded", content, StringComparison.Ordinal);
+        Assert.Contains("normalizeInitialRoute", content, StringComparison.Ordinal);
+        Assert.Contains("tryRestorePendingBrowseRoute", content, StringComparison.Ordinal);
+        Assert.Contains("redirectToNativeHomeBootstrapRoute", content, StringComparison.Ordinal);
+        Assert.Contains("buildNativeHomeBootstrapUrl", content, StringComparison.Ordinal);
+        Assert.Contains("findHeaderObserverTarget", content, StringComparison.Ordinal);
         Assert.Contains("findFavoritesTab", content, StringComparison.Ordinal);
-        Assert.Contains("insertAdjacentElement('afterend', link);", content, StringComparison.Ordinal);
+        Assert.Contains("findNativeHeaderTab", content, StringComparison.Ordinal);
+        Assert.Contains("getTabCandidates", content, StringComparison.Ordinal);
+        Assert.Contains("buildNavButton", content, StringComparison.Ordinal);
+        Assert.Contains("ensureNavButtonBehavior", content, StringComparison.Ordinal);
+        Assert.Contains("handleBrowseNavClick", content, StringComparison.Ordinal);
+        Assert.Contains(".skinHeader .headerTabs .emby-tabs-slider", content, StringComparison.Ordinal);
+        Assert.Contains("insertAdjacentElement('afterend', navButton);", content, StringComparison.Ordinal);
         Assert.Contains("cleanupDuplicateNavEntries", content, StringComparison.Ordinal);
+        Assert.Contains("handleHeaderTabClick", content, StringComparison.Ordinal);
+        Assert.Contains("navigateToNativeHeaderTab('home');", content, StringComparison.Ordinal);
+        Assert.Contains("navigateToNativeHeaderTab('favorites');", content, StringComparison.Ordinal);
+        Assert.Contains("window.location.hash = '#/' + nativeHomeRoute;", content, StringComparison.Ordinal);
+        Assert.Contains("window.location.replace(bootstrapUrl);", content, StringComparison.Ordinal);
+        Assert.Contains("'#/' + nativeHomeRoute + '?' + nativeRouteBrowseQueryKey + '=1';", content, StringComparison.Ordinal);
+        Assert.Contains("replaceHashWithoutNavigation('#/' + route);", content, StringComparison.Ordinal);
+        Assert.Contains("setBrowseRouteMode(true);", content, StringComparison.Ordinal);
+        Assert.Contains("setBrowseRouteMode(false);", content, StringComparison.Ordinal);
+        Assert.Contains("document.body.classList.toggle('personalRatingsBrowseRouteActive', isActive);", content, StringComparison.Ordinal);
+        Assert.Contains("headerObserver.observe(observerTarget", content, StringComparison.Ordinal);
+        Assert.Contains("existing.previousElementSibling !== favoritesTab", content, StringComparison.Ordinal);
+        Assert.Contains("navButton.dataset.personalRatingsBound = 'true';", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("mutationObserver.observe(document.body", content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("document.body.appendChild(page);", content, StringComparison.Ordinal);
         Assert.Contains("page.remove();", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetBrowsePageStyles_HidesNativeViews_WhenBrowseRouteIsActive()
+    {
+        WebAssetsController controller = new(
+            new TestFeatureService
+            {
+                IsManagePageEnabled = true
+            },
+            NullLogger<WebAssetsController>.Instance);
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+
+        FileStreamResult result = Assert.IsType<FileStreamResult>(controller.GetBrowsePageStyles());
+        string content = ReadContent(result);
+
+        Assert.Contains(".personalRatingsBrowseRouteActive .mainAnimatedPages", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseRouteActive .skinHeader .headerTabs.hide", content, StringComparison.Ordinal);
+        Assert.Contains("overflow: hidden !important;", content, StringComparison.Ordinal);
+        Assert.Contains("backdrop-filter: none !important;", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseRouteActive .itemDetailPage", content, StringComparison.Ordinal);
+        Assert.Contains("visibility: hidden !important;", content, StringComparison.Ordinal);
+        Assert.Contains("pointer-events: none !important;", content, StringComparison.Ordinal);
     }
 
     [Fact]

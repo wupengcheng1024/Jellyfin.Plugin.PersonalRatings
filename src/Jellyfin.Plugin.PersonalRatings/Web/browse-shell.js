@@ -23,11 +23,18 @@
     var navClassName = 'personalRatingsNavTab';
     var pageClassName = 'personalRatingsBrowsePage';
     var pageId = 'personalRatingsBrowsePage';
+    var pendingNativeTabTarget = null;
+    var nativeHomeRoute = 'home.html';
+    var nativeRouteBrowseQueryKey = 'personalratings';
     var route = 'personalratings';
     var stylesheetId = 'personalRatingsBrowseStylesheet';
+    var headerObserver = null;
+    var observedHeaderTabsHost = null;
+    var cachedHeaderTabsMarkup = '';
     var syncTimerIds = [];
     var state = window.PersonalRatingsBrowseState.create();
 
+    normalizeInitialRoute();
     bindShell();
     scheduleSyncBurst();
 
@@ -35,7 +42,9 @@
         window.addEventListener('hashchange', scheduleSyncBurst);
         window.addEventListener('popstate', scheduleSyncBurst);
         window.addEventListener('pageshow', scheduleSyncBurst);
+        document.addEventListener('click', handleBrowseNavClick, true);
         window.addEventListener('resize', updateActivePageOffset);
+        document.addEventListener('click', handleHeaderTabClick, true);
         document.addEventListener('visibilitychange', function () {
             if (!document.hidden) {
                 scheduleSyncBurst();
@@ -51,7 +60,7 @@
 
     function scheduleSyncBurst() {
         clearSyncTimers();
-        [0, 80, 220, 480].forEach(function (delay) {
+        [0, 80, 220, 480, 900, 1500].forEach(function (delay) {
             var timerId = window.setTimeout(function () {
                 sync();
             }, delay);
@@ -68,31 +77,42 @@
 
     function sync() {
         if (!window.ApiClient || typeof window.ApiClient.isLoggedIn !== 'function' || !window.ApiClient.isLoggedIn()) {
+            setBrowseRouteMode(false);
             cleanupDuplicateNavEntries(null);
             destroyPage();
             return;
         }
 
         var browseRouteActive = isBrowseRoute();
+        rememberHeaderTabsMarkup();
+        restoreHeaderTabsMarkupIfNeeded(browseRouteActive);
         var headerTabsHost = findPrimaryHeaderTabsHost();
+        ensureHeaderObserver(headerTabsHost);
+
+        if (!browseRouteActive && tryRestorePendingBrowseRoute(headerTabsHost)) {
+            browseRouteActive = true;
+        }
 
         if (!state.featuresLoaded && !state.isFeatureLoading && (browseRouteActive || !!headerTabsHost)) {
             ensureFeatureState();
         }
 
-        if (state.featuresLoaded && state.features.manageEnabled && headerTabsHost && ensureNavEntry(headerTabsHost)) {
+        if (state.featuresLoaded && !state.features.manageEnabled) {
+            cleanupDuplicateNavEntries(null);
+        } else if (state.featuresLoaded && state.features.manageEnabled && headerTabsHost && ensureNavEntry(headerTabsHost)) {
             cleanupDuplicateNavEntries(headerTabsHost);
             updateNavState();
-        } else if (state.featuresLoaded) {
-            cleanupDuplicateNavEntries(null);
         }
 
         if (!browseRouteActive) {
+            tryActivatePendingNativeTab(headerTabsHost);
+            setBrowseRouteMode(false);
             destroyPage();
             return;
         }
 
         ensureStylesheet();
+        setBrowseRouteMode(true);
         var page = ensurePage();
         if (!page) {
             return;
@@ -153,27 +173,265 @@
     }
 
     function isBrowseRoute() {
-        var hash = window.location.hash || '';
+        return isBrowseHash(window.location.hash || '');
+    }
+
+    function isBrowseHash(hash) {
         return hash === '#/' + route || hash.indexOf('#/' + route + '?') === 0;
     }
 
-    function findPrimaryHeaderTabsHost() {
-        var candidates = document.querySelectorAll('.skinHeader .headerTabs .emby-tabs, .skinHeader .headerTabs');
-        if (!candidates.length) {
-            return null;
+    function normalizeInitialRoute() {
+        if (!isBrowseHash(window.location.hash || '')) {
+            return;
         }
 
+        redirectToNativeHomeBootstrapRoute();
+    }
+
+    function tryRestorePendingBrowseRoute(headerTabsHost) {
+        if (!headerTabsHost || !hasPendingBrowseBootstrapRequest()) {
+            return false;
+        }
+
+        replaceHashWithoutNavigation('#/' + route);
+        return true;
+    }
+
+    function hasPendingBrowseBootstrapRequest() {
+        try {
+            var hash = window.location.hash || '';
+            if (hash.indexOf('#/' + nativeHomeRoute) !== 0) {
+                return false;
+            }
+
+            var parsedUrl = new URL(window.location.origin + '/' + hash.substring(2));
+            return parsedUrl.searchParams.get(nativeRouteBrowseQueryKey) === '1';
+        } catch (error) {
+            void error;
+            return false;
+        }
+    }
+
+    function redirectToNativeHomeBootstrapRoute() {
+        var bootstrapUrl = buildNativeHomeBootstrapUrl();
+        if (!bootstrapUrl) {
+            return;
+        }
+
+        window.location.replace(bootstrapUrl);
+    }
+
+    function buildNativeHomeBootstrapUrl() {
+        try {
+            var currentUrl = new URL(window.location.href);
+            var basePath = currentUrl.pathname;
+            if (basePath.endsWith('index.html')) {
+                basePath = basePath.substring(0, basePath.length - 'index.html'.length);
+            }
+
+            return currentUrl.origin + basePath + '#/' + nativeHomeRoute + '?' + nativeRouteBrowseQueryKey + '=1';
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function replaceHashWithoutNavigation(hash) {
+        try {
+            window.history.replaceState(window.history.state, document.title, hash);
+        } catch (error) {
+            window.location.hash = hash;
+        }
+    }
+
+    function getHeaderTabsContainer() {
+        return document.querySelector('.skinHeader .headerTabs');
+    }
+
+    function rememberHeaderTabsMarkup() {
+        var headerTabsContainer = getHeaderTabsContainer();
+        if (!headerTabsContainer) {
+            return;
+        }
+
+        var markup = String(headerTabsContainer.innerHTML || '').trim();
+        var text = String(headerTabsContainer.textContent || '').replace(/\s+/g, '');
+        if (!markup || !text) {
+            return;
+        }
+
+        cachedHeaderTabsMarkup = markup;
+    }
+
+    function restoreHeaderTabsMarkupIfNeeded(browseRouteActive) {
+        if (!browseRouteActive || !cachedHeaderTabsMarkup) {
+            return;
+        }
+
+        var headerTabsContainer = getHeaderTabsContainer();
+        if (!headerTabsContainer) {
+            return;
+        }
+
+        var currentText = String(headerTabsContainer.textContent || '').replace(/\s+/g, '');
+        if (currentText) {
+            return;
+        }
+
+        headerTabsContainer.innerHTML = cachedHeaderTabsMarkup;
+    }
+
+    function ensureHeaderObserver(headerTabsHost) {
+        var observerTarget = findHeaderObserverTarget(headerTabsHost);
+        if (!observerTarget || observedHeaderTabsHost === observerTarget) {
+            return;
+        }
+
+        if (headerObserver) {
+            headerObserver.disconnect();
+        }
+
+        observedHeaderTabsHost = observerTarget;
+        headerObserver = new MutationObserver(function () {
+            scheduleSyncBurst();
+        });
+        headerObserver.observe(observerTarget, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    function findHeaderObserverTarget(headerTabsHost) {
+        if (!headerTabsHost) {
+            return document.querySelector('.skinHeader .headerTabs');
+        }
+
+        if (headerTabsHost.classList.contains('emby-tabs-slider')) {
+            return headerTabsHost.parentElement || headerTabsHost;
+        }
+
+        return headerTabsHost;
+    }
+
+    function handleBrowseNavClick(event) {
+        var target = event.target;
+        if (!target || typeof target.closest !== 'function') {
+            return;
+        }
+
+        var navEntry = target.closest('.' + navClassName);
+        if (!navEntry) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        window.PersonalRatingsBrowseApi.navigateTo(route);
+    }
+
+    function handleHeaderTabClick(event) {
+        if (!isBrowseRoute()) {
+            return;
+        }
+
+        var target = event.target;
+        if (!target || typeof target.closest !== 'function') {
+            return;
+        }
+
+        var tabButton = target.closest('.skinHeader .headerTabs a, .skinHeader .headerTabs button, .skinHeader .headerTabs .emby-tab-button');
+        if (!tabButton || tabButton.classList.contains(navClassName)) {
+            return;
+        }
+
+        var normalizedText = String(tabButton.textContent || '').replace(/\s+/g, '').toLowerCase();
+        if (normalizedText.indexOf('首页') >= 0 || normalizedText.indexOf('home') >= 0) {
+            event.preventDefault();
+            event.stopPropagation();
+            navigateToNativeHeaderTab('home');
+            return;
+        }
+
+        if (normalizedText.indexOf('我的最爱') < 0
+            && normalizedText.indexOf('最爱') < 0
+            && normalizedText.indexOf('favorites') < 0) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        navigateToNativeHeaderTab('favorites');
+    }
+
+    function navigateToNativeHeaderTab(target) {
+        pendingNativeTabTarget = target;
+        setBrowseRouteMode(false);
+        destroyPage();
+        window.location.hash = '#/' + nativeHomeRoute;
+    }
+
+    function tryActivatePendingNativeTab(headerTabsHost) {
+        if (!pendingNativeTabTarget || !headerTabsHost) {
+            return;
+        }
+
+        var targetTab = findNativeHeaderTab(headerTabsHost, pendingNativeTabTarget);
+        if (!targetTab) {
+            return;
+        }
+
+        var pendingTarget = pendingNativeTabTarget;
+        pendingNativeTabTarget = null;
+        window.setTimeout(function () {
+            if (pendingTarget === 'home') {
+                targetTab.click();
+                return;
+            }
+
+            targetTab.click();
+        }, 0);
+    }
+
+    function findNativeHeaderTab(container, target) {
+        var candidates = getTabCandidates(container);
         for (var index = 0; index < candidates.length; index += 1) {
             var candidate = candidates[index];
-            if (!candidate || !candidate.children.length) {
+            if (!candidate || !candidate.textContent || (candidate.classList && candidate.classList.contains(navClassName))) {
                 continue;
             }
 
-            if (!isVisibleElement(candidate)) {
-                continue;
+            var normalizedText = String(candidate.textContent || '').replace(/\s+/g, '').toLowerCase();
+            if (target === 'home' && (normalizedText.indexOf('首页') >= 0 || normalizedText.indexOf('home') >= 0)) {
+                return candidate;
             }
 
-            return candidate;
+            if (target === 'favorites'
+                && (normalizedText.indexOf('我的最爱') >= 0
+                    || normalizedText.indexOf('最爱') >= 0
+                    || normalizedText.indexOf('favorites') >= 0)) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    function findPrimaryHeaderTabsHost() {
+        var selectors = [
+            '.skinHeader .headerTabs .emby-tabs-slider',
+            '.skinHeader .headerTabs .emby-tabs',
+            '.skinHeader .headerTabs'
+        ];
+
+        for (var selectorIndex = 0; selectorIndex < selectors.length; selectorIndex += 1) {
+            var candidates = document.querySelectorAll(selectors[selectorIndex]);
+            for (var candidateIndex = 0; candidateIndex < candidates.length; candidateIndex += 1) {
+                var candidate = candidates[candidateIndex];
+                if (!candidate || !isVisibleElement(candidate)) {
+                    continue;
+                }
+
+                return candidate;
+            }
         }
 
         return null;
@@ -193,7 +451,7 @@
     }
 
     function findFavoritesTab(container) {
-        var candidates = container.querySelectorAll('a, button, .emby-tab-button');
+        var candidates = getTabCandidates(container);
         for (var index = 0; index < candidates.length; index += 1) {
             var candidate = candidates[index];
             if (candidate.classList && candidate.classList.contains(navClassName)) {
@@ -214,29 +472,91 @@
         return null;
     }
 
+    function getTabCandidates(container) {
+        if (!container) {
+            return [];
+        }
+
+        if (container.classList.contains('emby-tabs-slider')) {
+            return Array.from(container.children);
+        }
+
+        var slider = container.querySelector('.emby-tabs-slider');
+        if (slider && slider.children.length) {
+            return Array.from(slider.children);
+        }
+
+        return Array.from(container.querySelectorAll('a, button, .emby-tab-button'));
+    }
+
     function ensureNavEntry(container) {
         var favoritesTab = findFavoritesTab(container);
         if (!favoritesTab) {
             return false;
         }
 
-        var existing = container.querySelector('.' + navClassName);
+        var host = favoritesTab.parentElement || container;
+        var existing = host.querySelector('.' + navClassName);
         if (existing) {
-            favoritesTab.insertAdjacentElement('afterend', existing);
+            ensureNavButtonBehavior(existing);
+            if (existing.previousElementSibling !== favoritesTab) {
+                favoritesTab.insertAdjacentElement('afterend', existing);
+            }
             return true;
         }
 
-        var link = document.createElement('a');
-        link.className = favoritesTab.className || 'emby-tab-button';
-        link.classList.add(navClassName);
-        link.href = '#/' + route;
-        link.textContent = '打分库';
-        link.addEventListener('click', function (event) {
+        var navButton = buildNavButton(favoritesTab);
+        favoritesTab.insertAdjacentElement('afterend', navButton);
+        return true;
+    }
+
+    function buildNavButton(templateTab) {
+        var navButton = document.createElement('button');
+        navButton.type = 'button';
+        navButton.className = templateTab.className || 'emby-tab-button emby-button';
+        navButton.classList.add(navClassName);
+        navButton.setAttribute('aria-current', 'false');
+        navButton.setAttribute('title', '打分库');
+
+        var isAttribute = templateTab.getAttribute('is');
+        if (isAttribute) {
+            navButton.setAttribute('is', isAttribute);
+        }
+
+        var foregroundTemplate = templateTab.querySelector('.emby-button-foreground');
+        if (foregroundTemplate) {
+            var foreground = document.createElement('div');
+            foreground.className = foregroundTemplate.className;
+            foreground.textContent = '打分库';
+            navButton.appendChild(foreground);
+        } else {
+            navButton.textContent = '打分库';
+        }
+
+        ensureNavButtonBehavior(navButton);
+        return navButton;
+    }
+
+    function ensureNavButtonBehavior(navButton) {
+        if (!navButton || navButton.dataset.personalRatingsBound === 'true') {
+            return;
+        }
+
+        navButton.dataset.personalRatingsBound = 'true';
+        navButton.addEventListener('click', function (event) {
             event.preventDefault();
+            event.stopPropagation();
             window.PersonalRatingsBrowseApi.navigateTo(route);
         });
-        favoritesTab.insertAdjacentElement('afterend', link);
-        return true;
+        navButton.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            window.PersonalRatingsBrowseApi.navigateTo(route);
+        });
     }
 
     function cleanupDuplicateNavEntries(primaryHost) {
@@ -276,6 +596,15 @@
         stylesheet.rel = 'stylesheet';
         stylesheet.href = '/Plugins/PersonalRatings/web/browse-page.css';
         document.head.appendChild(stylesheet);
+    }
+
+    function setBrowseRouteMode(isActive) {
+        if (!document.body || !document.documentElement) {
+            return;
+        }
+
+        document.body.classList.toggle('personalRatingsBrowseRouteActive', isActive);
+        document.documentElement.classList.toggle('personalRatingsBrowseRouteActive', isActive);
     }
 
     function ensurePage() {

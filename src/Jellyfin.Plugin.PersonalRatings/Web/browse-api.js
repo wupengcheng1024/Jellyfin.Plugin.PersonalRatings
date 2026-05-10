@@ -96,12 +96,22 @@
         },
 
         navigateTo: function (targetRoute) {
+            if (this.isCustomBrowseRoute(targetRoute)) {
+                window.location.hash = '#/' + targetRoute;
+                return;
+            }
+
             if (window.Dashboard && typeof window.Dashboard.navigate === 'function') {
                 window.Dashboard.navigate(targetRoute);
                 return;
             }
 
             window.location.hash = '#/' + targetRoute;
+        },
+
+        isCustomBrowseRoute: function (targetRoute) {
+            var normalizedRoute = String(targetRoute || '');
+            return normalizedRoute === 'personalratings' || normalizedRoute.indexOf('personalratings?') === 0;
         },
 
         getApiClient: function () {
