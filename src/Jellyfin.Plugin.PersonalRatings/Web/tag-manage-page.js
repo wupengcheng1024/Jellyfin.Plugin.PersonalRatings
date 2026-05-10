@@ -179,9 +179,9 @@
                         + '<td>' + TagManagePage.escapeHtml(String(tag.SortOrder)) + '</td>'
                         + '<td>' + TagManagePage.formatDate(tag.UpdatedAt) + '</td>'
                         + '<td><div class="personalRatingsRowActions">'
-                        + '<button is="emby-button" type="button" class="button-flat" data-tag-action="edit" data-tag-id="' + tag.Id + '">编辑</button>'
-                        + '<button is="emby-button" type="button" class="button-flat" data-tag-action="toggle" data-tag-id="' + tag.Id + '">' + (tag.IsEnabled ? '停用' : '启用') + '</button>'
-                        + '<button is="emby-button" type="button" class="button-flat personalRatingsDangerButton" data-tag-action="delete" data-tag-id="' + tag.Id + '">删除</button>'
+                        + '<button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsActionButton" data-tag-action="edit" data-tag-id="' + tag.Id + '">编辑</button>'
+                        + '<button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsActionButton" data-tag-action="toggle" data-tag-id="' + tag.Id + '">' + (tag.IsEnabled ? '停用' : '启用') + '</button>'
+                        + '<button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsActionButton personalRatingsDangerButton" data-tag-action="delete" data-tag-id="' + tag.Id + '">删除</button>'
                         + '</div></td>'
                         + '</tr>';
                 }).join('');

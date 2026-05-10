@@ -15,8 +15,8 @@
                         <p class="personalRatingsHeroText">这里先提供管理员可用的最小审计列表：按时间、结果、关键词和条目 ID 查看物理删除相关记录。</p>
                     </div>
                     <div class="personalRatingsHeroActions" style="gap: 12px; flex-wrap: wrap;">
-                        <a is="emby-linkbutton" class="button-flat" href="#/configurationpage?name=PersonalRatingsManagePage">返回我的评分库</a>
-                        <button is="emby-button" type="button" class="raised button-submit personalRatingsAuditRefreshButton">
+                        <a is="emby-linkbutton" class="button-flat personalRatingsButton" href="#/configurationpage?name=PersonalRatingsManagePage">返回评分后台</a>
+                        <button is="emby-button" type="button" class="raised button-submit personalRatingsAuditRefreshButton personalRatingsButton personalRatingsButtonPrimary">
                             <span>刷新审计</span>
                         </button>
                     </div>
@@ -64,10 +64,10 @@
                                     <option value="100">100</option>
                                 </select>
                             </label>
-                            <button is="emby-button" type="submit" class="raised button-submit">
+                            <button is="emby-button" type="submit" class="raised button-submit personalRatingsButton personalRatingsButtonPrimary">
                                 <span>查询</span>
                             </button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsAuditClearButton">
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsAuditClearButton">
                                 <span>清空</span>
                             </button>
                         </div>
@@ -96,11 +96,11 @@
                     </div>
 
                     <div class="personalRatingsPagination">
-                        <button is="emby-button" type="button" class="button-flat personalRatingsAuditPrevPageButton">
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsAuditPrevPageButton">
                             <span>上一页</span>
                         </button>
                         <div class="personalRatingsAuditPageText personalRatingsPageText">第 1 页</div>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsAuditNextPageButton">
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsAuditNextPageButton">
                             <span>下一页</span>
                         </button>
                     </div>

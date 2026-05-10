@@ -15,9 +15,9 @@
                         <p class="personalRatingsHeroText">这里提供一期标签定义的后台维护能力：新增、编辑、启用 / 停用、排序和删除。前台“打分库”和详情页会复用这里的定义。</p>
                     </div>
                     <div class="personalRatingsHeroActions" style="gap: 12px; flex-wrap: wrap;">
-                        <a is="emby-linkbutton" class="button-flat" href="#/configurationpage?name=PersonalRatingsManagePage">评分后台</a>
-                        <a is="emby-linkbutton" class="button-flat" href="#/configurationpage?name=PersonalRatingsAuditPage">删除审计</a>
-                        <button is="emby-button" type="button" class="raised button-submit personalRatingsTagRefreshButton">
+                        <a is="emby-linkbutton" class="button-flat personalRatingsButton" href="#/configurationpage?name=PersonalRatingsManagePage">评分后台</a>
+                        <a is="emby-linkbutton" class="button-flat personalRatingsButton" href="#/configurationpage?name=PersonalRatingsAuditPage">删除审计</a>
+                        <button is="emby-button" type="button" class="raised button-submit personalRatingsTagRefreshButton personalRatingsButton personalRatingsButtonPrimary">
                             <span>刷新标签</span>
                         </button>
                     </div>
@@ -51,10 +51,10 @@
                                 </label>
                             </div>
                             <div class="personalRatingsToolbarGroup">
-                                <button is="emby-button" type="submit" class="raised button-submit personalRatingsTagSaveButton">
+                                <button is="emby-button" type="submit" class="raised button-submit personalRatingsTagSaveButton personalRatingsButton personalRatingsButtonPrimary">
                                     <span>保存标签</span>
                                 </button>
-                                <button is="emby-button" type="button" class="button-flat personalRatingsTagCancelEditButton">
+                                <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsTagCancelEditButton">
                                     <span>取消编辑</span>
                                 </button>
                             </div>

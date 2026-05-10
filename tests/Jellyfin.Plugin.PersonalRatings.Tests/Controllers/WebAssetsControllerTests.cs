@@ -91,6 +91,10 @@ public sealed class WebAssetsControllerTests
         Assert.Contains("request.tagMatchMode = state.tagMatchMode || 'any';", content, StringComparison.Ordinal);
         Assert.Contains("当前筛选条件没有命中记录", content, StringComparison.Ordinal);
         Assert.Contains("当前还没有启用标签。请先到标签管理页创建并启用后再筛选。", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsCheckboxControl", content, StringComparison.Ordinal);
+        Assert.Contains("selectAllCheckbox.indeterminate", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsActionButton", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsChipButton", content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -173,6 +177,32 @@ public sealed class WebAssetsControllerTests
         Assert.Contains("visibility: hidden !important;", content, StringComparison.Ordinal);
         Assert.Contains("pointer-events: none !important;", content, StringComparison.Ordinal);
         Assert.Contains("display: flex !important;", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetManagePageStyles_ContainsReadableAdminButtonAndCheckboxContracts()
+    {
+        WebAssetsController controller = new(
+            new TestFeatureService
+            {
+                IsManagePageEnabled = true
+            },
+            NullLogger<WebAssetsController>.Instance);
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+
+        FileStreamResult result = Assert.IsType<FileStreamResult>(controller.GetManagePageStyles());
+        string content = ReadContent(result);
+
+        Assert.Contains(".personalRatingsButton", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsButtonPrimary", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsCheckboxControl", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsCheckboxMark", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsActionButton", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsTableWrap", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsStatusText.is-success", content, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -5,7 +5,7 @@
     <title>评分后台</title>
 </head>
 <body>
-    <div id="personalRatingsManagePage" data-role="page" class="page type-interior pluginConfigurationPage configPage personalRatingsManagePage" data-title="评分后台" data-backbutton="true" data-require="emby-button,emby-input,emby-select,emby-checkbox">
+    <div id="personalRatingsManagePage" data-role="page" class="page type-interior pluginConfigurationPage configPage personalRatingsManagePage" data-title="评分后台" data-backbutton="true" data-require="emby-button,emby-input,emby-select">
         <div data-role="content">
             <div class="content-primary">
                 <section class="personalRatingsHero">
@@ -15,13 +15,13 @@
                         <p class="personalRatingsHeroText">主入口已经切到前台“打分库”。这里保留预设视图、分页查询、多选、批量操作和审计相关的后台处理入口。</p>
                     </div>
                     <div class="personalRatingsHeroActions" style="gap: 12px; flex-wrap: wrap;">
-                        <a is="emby-linkbutton" type="button" class="button-flat" href="#/configurationpage?name=PersonalRatingsTagManagePage">
+                        <a is="emby-linkbutton" type="button" class="button-flat personalRatingsButton" href="#/configurationpage?name=PersonalRatingsTagManagePage">
                             <span>标签管理</span>
                         </a>
-                        <a is="emby-linkbutton" type="button" class="button-flat personalRatingsAdminOnly" href="#/configurationpage?name=PersonalRatingsAuditPage" hidden="hidden">
+                        <a is="emby-linkbutton" type="button" class="button-flat personalRatingsButton personalRatingsAdminOnly" href="#/configurationpage?name=PersonalRatingsAuditPage" hidden="hidden">
                             <span>删除审计</span>
                         </a>
-                        <button is="emby-button" type="button" class="raised button-submit personalRatingsRefreshButton">
+                        <button is="emby-button" type="button" class="raised button-submit personalRatingsRefreshButton personalRatingsButton personalRatingsButtonPrimary">
                             <span>刷新列表</span>
                         </button>
                     </div>
@@ -29,16 +29,16 @@
 
                 <section class="personalRatingsPanel">
                     <div class="personalRatingsPresetBar">
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="ratedAll">全部已评分</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score5">5分</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score4">4分</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score3">3分</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score2">2分</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="score1">1分</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="unrated">未评分</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="pendingDelete">待删除</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="recent">最近评分</button>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPresetButton" data-preset="playedUnrated">已播放未评分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="ratedAll">全部已评分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="score5">5分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="score4">4分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="score3">3分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="score2">2分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="score1">1分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="unrated">未评分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="pendingDelete">待删除</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="recent">最近评分</button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPresetButton" data-preset="playedUnrated">已播放未评分</button>
                     </div>
 
                     <form class="personalRatingsToolbar personalRatingsSearchForm">
@@ -47,10 +47,10 @@
                                 <span>关键词</span>
                                 <input is="emby-input" type="text" class="txtKeyword" placeholder="片名 / 剧名 / 条目名" />
                             </label>
-                            <button is="emby-button" type="submit" class="raised button-submit">
+                            <button is="emby-button" type="submit" class="raised button-submit personalRatingsButton personalRatingsButtonPrimary">
                                 <span>查询</span>
                             </button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsClearSearchButton">
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsClearSearchButton">
                                 <span>清空</span>
                             </button>
                         </div>
@@ -100,7 +100,7 @@
                                     <option value="all">必须同时包含全部已选标签</option>
                                 </select>
                             </label>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsClearTagFiltersButton">
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsClearTagFiltersButton">
                                 <span>清空标签筛选</span>
                             </button>
                         </div>
@@ -114,16 +114,16 @@
                             <div class="personalRatingsBatchHint">先勾选当前页条目，再执行批量改分、清分、待删除切换或批量打标签。</div>
                         </div>
                         <div class="personalRatingsBatchActions">
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="5">设为 5分</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="4">设为 4分</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="3">设为 3分</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="2">设为 2分</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-score="1">设为 1分</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="clear">清除评分</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="pendingOn">标记待删除</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton" data-batch-action="pendingOff">取消待删除</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsToggleTagPanelButton">批量标签</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchButton personalRatingsDangerButton personalRatingsAdminOnly personalRatingsDeleteFeatureOnly" data-batch-action="deletePhysical" hidden="hidden">物理删除</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton" data-batch-score="5">设为 5分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton" data-batch-score="4">设为 4分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton" data-batch-score="3">设为 3分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton" data-batch-score="2">设为 2分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton" data-batch-score="1">设为 1分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton" data-batch-action="clear">清除评分</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton" data-batch-action="pendingOn">标记待删除</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton" data-batch-action="pendingOff">取消待删除</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsToggleTagPanelButton">批量标签</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchButton personalRatingsDangerButton personalRatingsAdminOnly personalRatingsDeleteFeatureOnly" data-batch-action="deletePhysical" hidden="hidden">物理删除</button>
                         </div>
                     </div>
                     <div class="personalRatingsBatchTagPanel" hidden="hidden">
@@ -142,8 +142,8 @@
                         </div>
                         <div class="personalRatingsTagList personalRatingsBatchTagList"></div>
                         <div class="personalRatingsBatchActions personalRatingsBatchTagActions">
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchTagApplyButton personalRatingsBatchTagApplyAdd" data-tag-batch-action="add">批量添加标签</button>
-                            <button is="emby-button" type="button" class="button-flat personalRatingsBatchTagApplyButton personalRatingsBatchTagApplyRemove" data-tag-batch-action="remove">批量移除标签</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchTagApplyButton personalRatingsBatchTagApplyAdd" data-tag-batch-action="add">批量添加标签</button>
+                            <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsBatchTagApplyButton personalRatingsBatchTagApplyRemove" data-tag-batch-action="remove">批量移除标签</button>
                         </div>
                     </div>
                 </section>
@@ -159,7 +159,11 @@
                             <thead>
                                 <tr>
                                     <th class="personalRatingsCheckboxColumn">
-                                        <input is="emby-checkbox" type="checkbox" class="checkSelectAll" />
+                                        <label class="personalRatingsCheckboxControl personalRatingsCheckboxHeaderControl" title="全选当前页">
+                                            <input type="checkbox" class="checkSelectAll" />
+                                            <span class="personalRatingsCheckboxMark" aria-hidden="true"></span>
+                                            <span class="personalRatingsVisuallyHidden">全选当前页</span>
+                                        </label>
                                     </th>
                                     <th>条目</th>
                                     <th>评分</th>
@@ -174,11 +178,11 @@
                     </div>
 
                     <div class="personalRatingsPagination">
-                        <button is="emby-button" type="button" class="button-flat personalRatingsPrevPageButton">
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsPrevPageButton">
                             <span>上一页</span>
                         </button>
                         <div class="personalRatingsPageText">第 1 页</div>
-                        <button is="emby-button" type="button" class="button-flat personalRatingsNextPageButton">
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsNextPageButton">
                             <span>下一页</span>
                         </button>
                     </div>

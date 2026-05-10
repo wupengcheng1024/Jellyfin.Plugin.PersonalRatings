@@ -218,7 +218,7 @@
                 list.innerHTML = state.availableTags.map(function (tag) {
                     var isActive = selectedTagIds.indexOf(tag.Id) >= 0;
                     var background = ManagePage.hexToTransparent(tag.Color || '#d88b2f', 0.18);
-                    return '<button is="emby-button" type="button" class="button-flat personalRatingsTag personalRatingsBatchTagButton'
+                    return '<button is="emby-button" type="button" class="button-flat personalRatingsTag personalRatingsChipButton personalRatingsBatchTagButton'
                         + (isActive ? ' is-active' : '')
                         + '" data-batch-tag-id="' + tag.Id + '" style="background:' + background + '; border:1px solid ' + ManagePage.escapeHtml(tag.Color || '#d88b2f') + ';">'
                         + ManagePage.escapeHtml(tag.Name)
@@ -284,7 +284,7 @@
                     var background = isActive
                         ? ManagePage.hexToTransparent(tag.Color || '#d88b2f', 0.18)
                         : 'rgba(255, 255, 255, 0.08)';
-                    return '<button is="emby-button" type="button" class="button-flat personalRatingsTag personalRatingsFilterTagButton'
+                    return '<button is="emby-button" type="button" class="button-flat personalRatingsTag personalRatingsChipButton personalRatingsFilterTagButton'
                         + (isActive ? ' is-active' : '')
                         + '" data-filter-tag-id="' + tag.Id + '" style="background:' + background + '; border:1px solid ' + ManagePage.escapeHtml(tag.Color || '#d88b2f') + ';">'
                         + ManagePage.escapeHtml(tag.Name)
@@ -867,7 +867,13 @@
 
                     return ''
                         + '<tr>'
-                        + '<td class="personalRatingsCheckboxColumn"><input is="emby-checkbox" type="checkbox" class="personalRatingsRowCheckbox" data-item-id="' + ManagePage.escapeHtml(item.ItemId) + '"' + (isSelected ? ' checked="checked"' : '') + ' /></td>'
+                        + '<td class="personalRatingsCheckboxColumn">'
+                        + '<label class="personalRatingsCheckboxControl" title="选择 ' + itemName + '">'
+                        + '<input type="checkbox" class="personalRatingsRowCheckbox" data-item-id="' + ManagePage.escapeHtml(item.ItemId) + '"' + (isSelected ? ' checked="checked"' : '') + ' />'
+                        + '<span class="personalRatingsCheckboxMark" aria-hidden="true"></span>'
+                        + '<span class="personalRatingsVisuallyHidden">选择 ' + itemName + '</span>'
+                        + '</label>'
+                        + '</td>'
                         + '<td>'
                         + '<a class="personalRatingsItemName" href="' + detailsUrl + '">' + itemName + '</a>'
                         + '<div class="personalRatingsItemMeta">' + itemType + yearText + '</div>'
@@ -878,8 +884,8 @@
                         + '<td>' + ManagePage.formatDate(item.RatedAt) + '</td>'
                         + '<td>' + ManagePage.formatDate(item.UpdatedAt) + '</td>'
                         + '<td><div class="personalRatingsRowActions">'
-                        + '<a is="emby-linkbutton" class="button-flat" href="' + detailsUrl + '">打开详情</a>'
-                        + '<button is="emby-button" type="button" class="button-flat" data-item-id="' + ManagePage.escapeHtml(item.ItemId) + '" data-row-pending="' + (!item.IsPendingDelete ? 'true' : 'false') + '">' + (item.IsPendingDelete ? '取消待删除' : '标记待删除') + '</button>'
+                        + '<a is="emby-linkbutton" class="button-flat personalRatingsButton personalRatingsActionButton" href="' + detailsUrl + '">打开详情</a>'
+                        + '<button is="emby-button" type="button" class="button-flat personalRatingsButton personalRatingsActionButton" data-item-id="' + ManagePage.escapeHtml(item.ItemId) + '" data-row-pending="' + (!item.IsPendingDelete ? 'true' : 'false') + '">' + (item.IsPendingDelete ? '取消待删除' : '标记待删除') + '</button>'
                         + '</div></td>'
                         + '</tr>';
                 }).join('');
@@ -900,7 +906,9 @@
             var items = result && result.Items ? result.Items : [];
             var hasItems = items.length > 0;
             var isAllSelected = hasItems && selectedItemIds.length === items.length;
-            page.querySelector('.checkSelectAll').checked = isAllSelected;
+            var selectAllCheckbox = page.querySelector('.checkSelectAll');
+            selectAllCheckbox.checked = isAllSelected;
+            selectAllCheckbox.indeterminate = selectedItemIds.length > 0 && !isAllSelected;
             ManagePageTagHelper.renderFilters(page);
             ManagePageTagHelper.renderPanel(page);
         },

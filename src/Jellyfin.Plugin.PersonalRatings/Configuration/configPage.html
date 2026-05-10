@@ -5,31 +5,43 @@
     <title>Jellyfin Personal Ratings</title>
 </head>
 <body>
-    <div id="personalRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage configPage" data-require="emby-button">
+    <div id="personalRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage configPage personalRatingsManagePage personalRatingsConfigPage" data-require="emby-button">
         <div data-role="content">
-            <div class="content-primary" style="max-width: 860px;">
-                <h1>Jellyfin Personal Ratings</h1>
-                <p id="personalRatingsConfigIntro">当前插件的主入口已经前移到 Jellyfin Web 顶栏“打分库”。这里保留后台管理页、删除审计和插件级说明。</p>
-                <p id="personalRatingsConfigStatusText">正在读取功能开关状态...</p>
-                <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
-                    <button is="emby-button" type="button" class="raised button-submit" id="openManagePageButton">
-                        <span>打开评分后台</span>
-                    </button>
-                    <button is="emby-button" type="button" class="button-flat" id="openTagManagePageButton">
-                        <span>打开标签管理</span>
-                    </button>
-                    <button is="emby-button" type="button" class="button-flat" id="copyManageUrlButton">
-                        <span>复制页面路由</span>
-                    </button>
-                </div>
-                <div style="margin-top: 24px; opacity: 0.82; line-height: 1.6;">
-                    <p>推荐访问路由：</p>
-                    <code id="managePageUrlText">#/configurationpage?name=PersonalRatingsManagePage</code>
-                </div>
+            <div class="content-primary" style="max-width: 980px;">
+                <section class="personalRatingsHero">
+                    <div>
+                        <p class="personalRatingsEyebrow">Jellyfin.PersonalRatings</p>
+                        <h1>插件后台</h1>
+                        <p id="personalRatingsConfigIntro" class="personalRatingsHeroText">当前插件的主入口已经前移到 Jellyfin Web 顶栏“打分库”。这里保留评分后台、标签维护、删除审计和插件级说明。</p>
+                    </div>
+                    <div class="personalRatingsHeroActions">
+                        <button is="emby-button" type="button" class="raised button-submit personalRatingsButton personalRatingsButtonPrimary" id="openManagePageButton">
+                            <span>打开评分后台</span>
+                        </button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton" id="openTagManagePageButton">
+                            <span>打开标签管理</span>
+                        </button>
+                        <button is="emby-button" type="button" class="button-flat personalRatingsButton" id="copyManageUrlButton">
+                            <span>复制页面路由</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="personalRatingsPanel">
+                    <div class="personalRatingsFeedback">
+                        <div class="personalRatingsSummaryText">后台导航</div>
+                        <div id="personalRatingsConfigStatusText" class="personalRatingsStatusText" aria-live="polite">正在读取功能开关状态...</div>
+                    </div>
+                    <div class="personalRatingsEmptyBlock">
+                        <div>推荐访问路由：</div>
+                        <code id="managePageUrlText">#/configurationpage?name=PersonalRatingsManagePage</code>
+                    </div>
+                </section>
             </div>
         </div>
         <script type="text/javascript">
             (function () {
+                var stylesheetId = 'personalRatingsManagePageStylesheet';
                 var route = 'configurationpage?name=PersonalRatingsManagePage';
                 var tagRoute = 'configurationpage?name=PersonalRatingsTagManagePage';
                 var openButton = document.querySelector('#openManagePageButton');
@@ -37,6 +49,14 @@
                 var copyButton = document.querySelector('#copyManageUrlButton');
                 var statusText = document.querySelector('#personalRatingsConfigStatusText');
                 var routeText = document.querySelector('#managePageUrlText');
+
+                if (!document.getElementById(stylesheetId)) {
+                    var stylesheet = document.createElement('link');
+                    stylesheet.id = stylesheetId;
+                    stylesheet.rel = 'stylesheet';
+                    stylesheet.href = '/Plugins/PersonalRatings/web/manage-page.css';
+                    document.head.appendChild(stylesheet);
+                }
 
                 openButton.addEventListener('click', function () {
                     if (window.Dashboard && typeof window.Dashboard.navigate === 'function') {
@@ -73,7 +93,7 @@
                 }).then(function (result) {
                     var manageEnabled = !!(result && result.IsManagePageEnabled);
                     if (manageEnabled) {
-                        statusText.textContent = '当前已启用前台“打分库”入口；这里保留评分后台和删除审计等次级入口。';
+                        statusText.textContent = '当前已启用前台“打分库”入口；这里保留评分后台、标签管理和删除审计等次级入口。';
                         return;
                     }
 
