@@ -164,11 +164,15 @@ public sealed class WebAssetsControllerTests
 
         Assert.Contains(".personalRatingsBrowseRouteActive .mainAnimatedPages", content, StringComparison.Ordinal);
         Assert.Contains(".personalRatingsBrowseRouteActive .skinHeader .headerTabs.hide", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseRouteActive .mainDrawer.drawer-open", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseRouteActive .mainDrawer.transition.touch-menu-la.drawer-open", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseRouteActive .tmla-mask.backdrop", content, StringComparison.Ordinal);
         Assert.Contains("overflow: hidden !important;", content, StringComparison.Ordinal);
         Assert.Contains("backdrop-filter: none !important;", content, StringComparison.Ordinal);
         Assert.Contains(".personalRatingsBrowseRouteActive .itemDetailPage", content, StringComparison.Ordinal);
         Assert.Contains("visibility: hidden !important;", content, StringComparison.Ordinal);
         Assert.Contains("pointer-events: none !important;", content, StringComparison.Ordinal);
+        Assert.Contains("display: flex !important;", content, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -189,12 +193,22 @@ public sealed class WebAssetsControllerTests
         string browseApiContent = ReadContent(Assert.IsType<FileStreamResult>(controller.GetBrowseApiScript()));
         string detailsApiContent = ReadContent(Assert.IsType<FileStreamResult>(controller.GetDetailsApiScript()));
         string detailsRatingContent = ReadContent(Assert.IsType<FileStreamResult>(controller.GetDetailsRatingScript()));
+        string detailsPanelContent = ReadContent(Assert.IsType<FileStreamResult>(controller.GetDetailsPanelScript()));
 
         Assert.Contains("window.PersonalRatingsFeatureStateCache", browseApiContent, StringComparison.Ordinal);
         Assert.Contains("window.PersonalRatingsFeatureStateCache", detailsApiContent, StringComparison.Ordinal);
         Assert.DoesNotContain("MutationObserver", detailsRatingContent, StringComparison.Ordinal);
         Assert.Contains("window.PersonalRatingsDetailPanel.hideLauncher();", detailsRatingContent, StringComparison.Ordinal);
         Assert.Contains("var syncTimerIds = [];", detailsRatingContent, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsInlineControls", detailsPanelContent, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsQuickButton", detailsPanelContent, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsInlineSummary", detailsPanelContent, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsPanelCloseButton", detailsPanelContent, StringComparison.Ordinal);
+        Assert.Contains("renderInlineSummary", detailsPanelContent, StringComparison.Ordinal);
+        Assert.Contains("setPanelOpen", detailsPanelContent, StringComparison.Ordinal);
+        Assert.Contains("togglePanel", detailsPanelContent, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsDetailPanel .button-flat", detailsPanelContent, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsManageButton", detailsPanelContent, StringComparison.Ordinal);
     }
 
     private static string ReadContent(FileStreamResult result)

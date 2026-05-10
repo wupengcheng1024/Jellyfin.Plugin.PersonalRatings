@@ -6,6 +6,7 @@
     }
 
     var launcherId = 'personalRatingsLauncher';
+    var inlineControlsClassName = 'personalRatingsInlineControls';
     var panelClassName = 'personalRatingsDetailPanel';
     var styleId = 'personalRatingsInjectedStyles';
 
@@ -14,6 +15,7 @@
      * Business rules and requests stay in the bootstrap shell / API module.
      */
     window.PersonalRatingsDetailPanel = {
+        inlineControlsClassName: inlineControlsClassName,
         launcherId: launcherId,
         panelClassName: panelClassName,
 
@@ -25,13 +27,75 @@
             var style = document.createElement('style');
             style.id = styleId;
             style.textContent = [
+                '.personalRatingsInlineControls {',
+                '  display: inline-flex;',
+                '  align-items: center;',
+                '  gap: 12px;',
+                '  margin-left: 10px;',
+                '  max-width: min(56vw, 620px);',
+                '}',
+                '.personalRatingsQuickButton {',
+                '  min-width: 42px;',
+                '  min-height: 42px;',
+                '  width: 42px;',
+                '  height: 42px;',
+                '  padding: 0 !important;',
+                '  border-radius: 12px !important;',
+                '  border: 1px solid rgba(216, 139, 47, 0.26) !important;',
+                '  background: rgba(216, 139, 47, 0.12) !important;',
+                '  color: #ffe6c8 !important;',
+                '}',
+                '.personalRatingsQuickButton .material-icons {',
+                '  font-size: 20px;',
+                '}',
+                '.personalRatingsQuickButton.is-active {',
+                '  background: rgba(216, 139, 47, 0.2) !important;',
+                '  border-color: rgba(216, 139, 47, 0.4) !important;',
+                '}',
+                '.personalRatingsInlineSummary {',
+                '  display: grid;',
+                '  gap: 4px;',
+                '  min-width: 0;',
+                '  padding: 6px 0;',
+                '  color: rgba(255, 255, 255, 0.88);',
+                '}',
+                '.personalRatingsInlineScore {',
+                '  font-size: 14px;',
+                '  font-weight: 600;',
+                '}',
+                '.personalRatingsInlineTags {',
+                '  display: flex;',
+                '  flex-wrap: wrap;',
+                '  gap: 6px;',
+                '  min-width: 0;',
+                '}',
+                '.personalRatingsInlineTag {',
+                '  display: inline-flex;',
+                '  align-items: center;',
+                '  min-height: 26px;',
+                '  padding: 0 10px;',
+                '  border-radius: 999px;',
+                '  border: 1px solid rgba(255, 255, 255, 0.12);',
+                '  background: rgba(255, 255, 255, 0.05);',
+                '  color: rgba(255, 255, 255, 0.78);',
+                '  font-size: 12px;',
+                '  line-height: 1;',
+                '}',
+                '.personalRatingsInlineTag-empty {',
+                '  color: rgba(255, 255, 255, 0.52);',
+                '}',
                 '.personalRatingsDetailPanel {',
-                '  margin-top: 18px;',
+                '  display: block;',
+                '  margin-top: 14px;',
                 '  padding: 18px 20px;',
-                '  border-radius: 22px;',
+                '  border-radius: 18px;',
                 '  border: 1px solid rgba(255, 255, 255, 0.08);',
-                '  background: linear-gradient(155deg, rgba(14, 18, 26, 0.92), rgba(28, 37, 52, 0.86));',
-                '  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.24);',
+                '  background: linear-gradient(180deg, rgba(15, 20, 28, 0.94), rgba(18, 24, 33, 0.9));',
+                '  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);',
+                '  max-width: min(780px, calc(100vw - 64px));',
+                '}',
+                '.personalRatingsDetailPanel.is-collapsed {',
+                '  display: none;',
                 '}',
                 '.personalRatingsPanelHeader {',
                 '  display: flex;',
@@ -39,8 +103,27 @@
                 '  gap: 12px;',
                 '  align-items: center;',
                 '}',
+                '.personalRatingsPanelHeaderActions {',
+                '  display: flex;',
+                '  gap: 10px;',
+                '  align-items: center;',
+                '  flex-wrap: wrap;',
+                '}',
+                '.personalRatingsDetailPanel .button-flat {',
+                '  min-height: 40px;',
+                '  padding: 0 14px;',
+                '  border-radius: 12px;',
+                '  border: 1px solid rgba(255, 255, 255, 0.12);',
+                '  background: rgba(255, 255, 255, 0.05);',
+                '  color: rgba(255, 255, 255, 0.9);',
+                '}',
+                '.personalRatingsDetailPanel .button-flat:hover {',
+                '  background: rgba(255, 255, 255, 0.09);',
+                '  border-color: rgba(255, 255, 255, 0.18);',
+                '}',
                 '.personalRatingsPanelHeader h3 {',
                 '  margin: 4px 0 0;',
+                '  font-size: 28px;',
                 '}',
                 '.personalRatingsPanelEyebrow {',
                 '  font-size: 11px;',
@@ -48,11 +131,24 @@
                 '  text-transform: uppercase;',
                 '  color: rgba(255, 255, 255, 0.62);',
                 '}',
+                '.personalRatingsManageButton {',
+                '  border-color: rgba(11, 157, 222, 0.28) !important;',
+                '  background: rgba(11, 157, 222, 0.12) !important;',
+                '  color: #d9f2ff !important;',
+                '  font-weight: 600;',
+                '}',
+                '.personalRatingsPanelCloseButton {',
+                '  font-weight: 600;',
+                '}',
                 '.personalRatingsScoreRow, .personalRatingsMetaRow {',
                 '  display: flex;',
                 '  flex-wrap: wrap;',
                 '  gap: 10px;',
                 '  margin-top: 14px;',
+                '}',
+                '.personalRatingsScoreButton {',
+                '  min-width: 58px;',
+                '  font-weight: 600;',
                 '}',
                 '.personalRatingsTagSection {',
                 '  margin-top: 16px;',
@@ -68,6 +164,12 @@
                 '  gap: 10px;',
                 '  margin-top: 10px;',
                 '}',
+                '.personalRatingsTagButton {',
+                '  min-height: 38px;',
+                '  border-radius: 999px !important;',
+                '  padding: 0 14px !important;',
+                '  font-weight: 600;',
+                '}',
                 '.personalRatingsTagButton.is-active {',
                 '  border-color: rgba(216, 139, 47, 0.42);',
                 '  color: #fff8ef;',
@@ -80,9 +182,14 @@
                 '  border-color: rgba(229, 139, 47, 0.4);',
                 '  color: #fff3e2;',
                 '}',
+                '.personalRatingsClearButton, .personalRatingsPendingButton {',
+                '  font-weight: 600;',
+                '}',
                 '.personalRatingsDeleteButton {',
                 '  border-color: rgba(255, 107, 107, 0.32);',
+                '  background: rgba(255, 107, 107, 0.08);',
                 '  color: #ffd0d0;',
+                '  font-weight: 600;',
                 '}',
                 '.personalRatingsDeleteButton:hover {',
                 '  background: rgba(255, 107, 107, 0.16);',
@@ -91,6 +198,7 @@
                 '  margin-top: 14px;',
                 '  color: rgba(255, 255, 255, 0.74);',
                 '  line-height: 1.55;',
+                '  padding-top: 6px;',
                 '}',
                 '#' + launcherId + ' {',
                 '  position: fixed;',
@@ -108,8 +216,20 @@
                 '  display: none;',
                 '}',
                 '@media (max-width: 760px) {',
+                '  .personalRatingsInlineControls {',
+                '    display: flex;',
+                '    width: 100%;',
+                '    margin-left: 0;',
+                '    margin-top: 10px;',
+                '    max-width: none;',
+                '    align-items: flex-start;',
+                '  }',
+                '  .personalRatingsInlineSummary {',
+                '    width: 100%;',
+                '  }',
                 '  .personalRatingsDetailPanel {',
                 '    padding: 16px;',
+                '    max-width: none;',
                 '  }',
                 '  .personalRatingsPanelHeader {',
                 '    flex-direction: column;',
@@ -163,16 +283,52 @@
                 return null;
             }
 
+            var controls = detailsPage.querySelector('.' + inlineControlsClassName);
+            if (!controls) {
+                controls = document.createElement('div');
+                controls.className = inlineControlsClassName;
+                controls.innerHTML = [
+                    '<button type="button" class="button-flat personalRatingsQuickButton" title="编辑个人评分" aria-label="编辑个人评分" aria-expanded="false">',
+                    '  <span class="material-icons" aria-hidden="true">star</span>',
+                    '</button>',
+                    '<div class="personalRatingsInlineSummary" aria-live="polite">',
+                    '  <div class="personalRatingsInlineScore">未评分</div>',
+                    '  <div class="personalRatingsInlineTags">',
+                    '    <span class="personalRatingsInlineTag personalRatingsInlineTag-empty">暂无标签</span>',
+                    '  </div>',
+                    '</div>'
+                ].join('');
+
+                controls.addEventListener('click', function (event) {
+                    var target = event.target;
+                    if (!target) {
+                        return;
+                    }
+
+                    if (target.closest('.personalRatingsQuickButton')) {
+                        event.preventDefault();
+                        window.PersonalRatingsDetailPanel.togglePanel(panel);
+                    }
+                });
+            }
+
+            if (controls.parentElement !== buttonRow) {
+                buttonRow.appendChild(controls);
+            }
+
             if (!panel) {
                 panel = document.createElement('section');
-                panel.className = panelClassName;
+                panel.className = panelClassName + ' is-collapsed';
                 panel.innerHTML = [
                     '<div class="personalRatingsPanelHeader">',
                     '  <div>',
                     '    <div class="personalRatingsPanelEyebrow">Personal Ratings</div>',
                     '    <h3>个人评分</h3>',
                     '  </div>',
-                    '  <button type="button" class="button-flat personalRatingsManageButton">打开打分库</button>',
+                    '  <div class="personalRatingsPanelHeaderActions">',
+                    '    <button type="button" class="button-flat personalRatingsManageButton">打开打分库</button>',
+                    '    <button type="button" class="button-flat personalRatingsPanelCloseButton">关闭</button>',
+                    '  </div>',
                     '</div>',
                     '<div class="personalRatingsScoreRow">',
                     '  <button type="button" class="button-flat personalRatingsScoreButton" data-score="1">1分</button>',
@@ -228,17 +384,27 @@
 
                     if (target.closest('.personalRatingsManageButton')) {
                         callbacks.onOpenManagePage();
+                        return;
+                    }
+
+                    if (target.closest('.personalRatingsPanelCloseButton')) {
+                        window.PersonalRatingsDetailPanel.setPanelOpen(panel, false);
                     }
                 });
 
                 buttonRow.insertAdjacentElement('afterend', panel);
             }
 
+            panel._inlineControls = controls;
+            controls._personalRatingsPanel = panel;
+
             if (panel.dataset.itemId !== itemId) {
                 panel.dataset.itemId = itemId;
                 panel.dataset.isPendingDelete = 'false';
                 panel.dataset.tagIds = '[]';
                 panel._personalRatingsRating = null;
+                this.setPanelOpen(panel, false);
+                this.renderInlineSummary(panel, null, []);
                 this.renderSummary(panel, null, '正在读取当前评分...');
                 this.renderTagPickerLoading(panel);
                 this.syncScoreButtons(panel, 0);
@@ -248,10 +414,12 @@
         },
 
         removeDetailPanel: function () {
-            var panel = document.querySelector('.' + panelClassName);
-            if (panel) {
+            document.querySelectorAll('.' + panelClassName).forEach(function (panel) {
                 panel.remove();
-            }
+            });
+            document.querySelectorAll('.' + inlineControlsClassName).forEach(function (controls) {
+                controls.remove();
+            });
         },
 
         getActivePanel: function (itemId) {
@@ -331,6 +499,7 @@
             panel.dataset.tagIds = JSON.stringify((selectedTags || []).map(function (tag) {
                 return tag.Id;
             }));
+            this.renderInlineSummary(panel, rating, selectedTags);
             this.renderTagPicker(panel, availableTags, selectedTags);
             this.renderSummary(panel, rating, this.buildSummary(rating, selectedTags));
             this.syncScoreButtons(panel, rating && rating.Score ? rating.Score : 0);
@@ -363,6 +532,72 @@
             }
 
             panel.querySelector('.personalRatingsDetailSummary').textContent = message;
+        },
+
+        renderInlineSummary: function (panel, result, tags) {
+            var controls = panel ? panel._inlineControls : null;
+            if (!controls) {
+                return;
+            }
+
+            var scoreNode = controls.querySelector('.personalRatingsInlineScore');
+            var tagsNode = controls.querySelector('.personalRatingsInlineTags');
+            var safeResult = result || {
+                Score: 0
+            };
+            var selectedTags = Array.isArray(tags) ? tags : [];
+
+            if (scoreNode) {
+                scoreNode.textContent = safeResult.Score > 0 ? ('当前 ' + safeResult.Score + ' 分') : '当前未评分';
+            }
+
+            if (!tagsNode) {
+                return;
+            }
+
+            if (!selectedTags.length) {
+                tagsNode.innerHTML = '<span class="personalRatingsInlineTag personalRatingsInlineTag-empty">暂无标签</span>';
+                return;
+            }
+
+            var visibleTags = selectedTags.slice(0, 2);
+            var overflowCount = Math.max(0, selectedTags.length - visibleTags.length);
+            tagsNode.innerHTML = visibleTags.map(function (tag) {
+                var color = window.PersonalRatingsDetailPanel.escapeHtml(tag.Color || '#d88b2f');
+                var background = window.PersonalRatingsDetailPanel.hexToTransparent(tag.Color || '#d88b2f', 0.18);
+                return '<span class="personalRatingsInlineTag" style="border-color:' + color + '; background:' + background + ';">'
+                    + window.PersonalRatingsDetailPanel.escapeHtml(tag.Name)
+                    + '</span>';
+            }).join('') + (overflowCount > 0
+                ? '<span class="personalRatingsInlineTag">+' + overflowCount + '</span>'
+                : '');
+        },
+
+        setPanelOpen: function (panel, isOpen) {
+            if (!panel) {
+                return;
+            }
+
+            panel.classList.toggle('is-collapsed', !isOpen);
+
+            var controls = panel._inlineControls;
+            if (!controls) {
+                return;
+            }
+
+            var toggleButton = controls.querySelector('.personalRatingsQuickButton');
+            if (toggleButton) {
+                toggleButton.classList.toggle('is-active', isOpen);
+                toggleButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            }
+        },
+
+        togglePanel: function (panel) {
+            if (!panel) {
+                return;
+            }
+
+            this.setPanelOpen(panel, panel.classList.contains('is-collapsed'));
         },
 
         getSelectedTagIds: function (panel) {
