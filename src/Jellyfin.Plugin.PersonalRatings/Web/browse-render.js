@@ -24,7 +24,13 @@
             resultsNode.classList.toggle('is-list', state.viewMode === 'list');
 
             if (!items.length) {
-                cardsNode.innerHTML = '<div class="personalRatingsBrowseEmpty">当前筛选条件下没有条目。</div>';
+                cardsNode.innerHTML = '<div class="personalRatingsBrowseEmpty">'
+                    + this.escapeHtml(state.lastLoadFailed
+                        ? '打分库暂时无法加载，请稍后刷新重试。'
+                        : (this.hasActiveFilters(state)
+                            ? '当前筛选条件下没有条目。'
+                            : '当前还没有个人评分记录。'))
+                    + '</div>';
             } else {
                 cardsNode.innerHTML = items.map(function (item) {
                     return window.PersonalRatingsBrowseRenderer.renderItemCard(item);
@@ -115,11 +121,19 @@
             var endIndex = Math.min(totalCount, pageNumber * pageSize);
             var manageModeHint = page.querySelector('.personalRatingsBrowseModeHint');
 
-            page.querySelector('.personalRatingsBrowseSummaryText').textContent =
-                '共 ' + totalCount + ' 条，当前显示 ' + startIndex + '-' + endIndex + '。';
+            if (state.lastLoadFailed) {
+                page.querySelector('.personalRatingsBrowseSummaryText').textContent = '打分库暂时无法加载，请稍后刷新重试。';
+            } else if (totalCount === 0 && this.hasActiveFilters(state)) {
+                page.querySelector('.personalRatingsBrowseSummaryText').textContent = '当前筛选条件没有命中条目。';
+            } else if (totalCount === 0) {
+                page.querySelector('.personalRatingsBrowseSummaryText').textContent = '当前还没有个人评分记录。';
+            } else {
+                page.querySelector('.personalRatingsBrowseSummaryText').textContent =
+                    '共 ' + totalCount + ' 条，当前显示 ' + startIndex + '-' + endIndex + '。';
+            }
 
             if (manageModeHint) {
-                manageModeHint.textContent = '批量操作仍保留在评分后台里，前台页面先专注浏览与快速筛选。';
+                manageModeHint.textContent = '前台页先专注浏览与快速筛选，批量操作仍保留在评分后台。';
             }
         },
 
@@ -145,6 +159,15 @@
 
         buildScoreText: function (score) {
             return score > 0 ? (score + ' 分') : '未评分';
+        },
+
+        hasActiveFilters: function (state) {
+            return !!(state.search
+                || (Array.isArray(state.tagIds) && state.tagIds.length)
+                || state.playedFilter !== 'all'
+                || state.mediaType !== 'all'
+                || state.scoreFilter !== 'rated'
+                || state.sortValue !== 'ratedAt:desc');
         },
 
         escapeHtml: function (value) {

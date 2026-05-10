@@ -1,14 +1,14 @@
 .personalRatingsBrowsePage {
-    position: absolute;
-    inset: 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
     overflow-y: auto;
     overflow-x: hidden;
     display: none;
-    z-index: 4;
-    padding: 18px 24px 32px;
-    background:
-        radial-gradient(circle at top left, rgba(216, 139, 47, 0.2), transparent 28%),
-        linear-gradient(180deg, rgba(9, 13, 19, 0.98), rgba(12, 17, 24, 0.98));
+    z-index: 40;
+    padding: 20px 24px 32px;
+    background: #10151c;
 }
 
 .personalRatingsBrowsePage.is-active {
@@ -17,54 +17,52 @@
 
 .personalRatingsBrowseLayout {
     display: grid;
-    gap: 16px;
+    gap: 18px;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
-.personalRatingsBrowseHero,
+.personalRatingsBrowseHeader,
 .personalRatingsBrowsePanel {
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 46%),
-        rgba(17, 24, 32, 0.88);
-    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.035);
 }
 
-.personalRatingsBrowseHero {
+.personalRatingsBrowseHeader {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
-    align-items: flex-start;
-    padding: 22px 24px;
+    gap: 18px;
+    align-items: center;
+    padding: 18px 20px;
 }
 
 .personalRatingsBrowseEyebrow {
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     font-size: 11px;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.64);
+    color: rgba(255, 255, 255, 0.56);
 }
 
-.personalRatingsBrowseHero h1 {
+.personalRatingsBrowseHeader h1 {
     margin: 0;
-    font-size: 32px;
-    line-height: 1.02;
+    font-size: 30px;
+    line-height: 1.1;
 }
 
-.personalRatingsBrowseHero p {
-    margin: 10px 0 0;
-    max-width: 720px;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.72);
+.personalRatingsBrowseHeader p {
+    margin: 8px 0 0;
+    max-width: 760px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.7);
 }
 
-.personalRatingsBrowseHeroActions,
+.personalRatingsBrowseHeaderActions,
 .personalRatingsBrowseToolbar,
 .personalRatingsBrowseToolbarGroup,
 .personalRatingsBrowseStatus,
 .personalRatingsBrowsePagination,
-.personalRatingsBrowseViewToggle,
 .personalRatingsBrowseTagFilters,
 .personalRatingsBrowseTagRow {
     display: flex;
@@ -73,24 +71,23 @@
     align-items: center;
 }
 
-.personalRatingsBrowseHeroActions {
+.personalRatingsBrowseHeaderActions {
     justify-content: flex-end;
 }
 
 .personalRatingsBrowseModeHint {
-    margin-top: 14px;
+    margin-top: 10px;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.52);
 }
 
 .personalRatingsBrowsePanel {
     padding: 18px 20px;
+    box-shadow: none;
 }
 
 .personalRatingsBrowsePanel-toolbar {
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 55%),
-        rgba(13, 20, 29, 0.84);
+    background: rgba(255, 255, 255, 0.025);
 }
 
 .personalRatingsBrowseToolbar {
@@ -150,9 +147,9 @@
     align-items: center;
     gap: 8px;
     padding: 7px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.035);
+    background: rgba(255, 255, 255, 0.03);
     color: rgba(255, 255, 255, 0.8);
     cursor: pointer;
 }
@@ -164,9 +161,9 @@
 }
 
 .personalRatingsBrowseViewButton.is-active {
-    background: rgba(216, 139, 47, 0.14);
-    border-color: rgba(216, 139, 47, 0.3);
-    color: #fff2e3;
+    background: rgba(216, 139, 47, 0.18);
+    border-color: rgba(216, 139, 47, 0.34);
+    color: #fff5ea;
 }
 
 .personalRatingsBrowseStatus {
@@ -192,7 +189,7 @@
 
 .personalRatingsBrowseCards {
     display: grid;
-    gap: 18px 16px;
+    gap: 20px 16px;
     grid-template-columns: repeat(auto-fill, minmax(184px, 1fr));
 }
 
@@ -214,12 +211,10 @@
 .personalRatingsPoster {
     position: relative;
     aspect-ratio: 2 / 3;
-    border-radius: 14px;
+    border-radius: 12px;
     overflow: hidden;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
-        rgba(20, 28, 38, 0.92);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    background: rgba(20, 28, 38, 0.92);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
 }
 
 .personalRatingsPosterImage {
@@ -233,7 +228,7 @@
 .personalRatingsPosterOverlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(8, 12, 18, 0.06), rgba(8, 12, 18, 0.76));
+    background: linear-gradient(180deg, rgba(8, 12, 18, 0.04), rgba(8, 12, 18, 0.72));
 }
 
 .personalRatingsPosterBadges {
@@ -267,7 +262,7 @@
 }
 
 .personalRatingsScoreBadge {
-    background: rgba(216, 139, 47, 0.78);
+    background: rgba(216, 139, 47, 0.7);
     color: #fff8ef;
     font-weight: 600;
 }
@@ -278,8 +273,8 @@
 }
 
 .personalRatingsStateBadge-subtle {
-    border: 1px solid rgba(255, 126, 126, 0.22);
-    background: rgba(255, 107, 107, 0.16);
+    border: 1px solid rgba(255, 126, 126, 0.14);
+    background: rgba(255, 107, 107, 0.12);
 }
 
 .personalRatingsCardBody {
@@ -291,7 +286,7 @@
     margin: 0;
     font-size: 15px;
     line-height: 1.4;
-    font-weight: 700;
+    font-weight: 600;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -299,12 +294,12 @@
 }
 
 .personalRatingsCardMeta {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.68);
     font-size: 13px;
 }
 
 .personalRatingsCardSubMeta {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.52);
     font-size: 12px;
 }
 
@@ -316,8 +311,8 @@
 }
 
 .personalRatingsCardTag {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .personalRatingsCardTag-overflow {
@@ -326,7 +321,7 @@
 
 .personalRatingsEmptyTag {
     background: rgba(255, 255, 255, 0.03);
-    color: rgba(255, 255, 255, 0.48);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .personalRatingsBrowseResults.is-list .personalRatingsCardLink {
@@ -338,9 +333,9 @@
     align-items: stretch;
     gap: 14px;
     padding: 12px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(255, 255, 255, 0.024);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .personalRatingsBrowseResults.is-list .personalRatingsPoster {
@@ -351,7 +346,10 @@
 .personalRatingsBrowseEmpty {
     padding: 32px 14px;
     text-align: center;
-    color: rgba(255, 255, 255, 0.64);
+    color: rgba(255, 255, 255, 0.68);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .personalRatingsBrowsePagination {
@@ -379,7 +377,7 @@
         padding: 14px 14px 28px;
     }
 
-    .personalRatingsBrowseHero,
+    .personalRatingsBrowseHeader,
     .personalRatingsBrowseToolbar,
     .personalRatingsBrowseStatus,
     .personalRatingsBrowsePagination {
@@ -389,7 +387,7 @@
 
     .personalRatingsBrowseSearchForm,
     .personalRatingsBrowseToolbarGroup,
-    .personalRatingsBrowseHeroActions {
+    .personalRatingsBrowseHeaderActions {
         align-items: stretch;
     }
 

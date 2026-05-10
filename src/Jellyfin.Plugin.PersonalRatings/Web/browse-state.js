@@ -17,10 +17,14 @@
                 },
                 isAdministrator: false,
                 isLoading: false,
+                isTagLoading: false,
                 isFeatureLoading: false,
                 isUserLoading: false,
+                featuresLoaded: false,
+                userContextLoaded: false,
                 pageNumber: 1,
                 pageSize: 36,
+                needsReload: true,
                 scoreFilter: 'rated',
                 tagIds: [],
                 tagMatchMode: 'any',
@@ -30,6 +34,7 @@
                 search: '',
                 viewMode: 'poster',
                 lastResult: null,
+                lastLoadFailed: false,
                 tags: [],
                 requestVersion: 0,
                 tagsLoaded: false
@@ -74,10 +79,12 @@
 
         setFeatureState: function (state, manageEnabled) {
             state.features.manageEnabled = !!manageEnabled;
+            state.featuresLoaded = true;
         },
 
         setUserAdministrator: function (state, isAdministrator) {
             state.isAdministrator = !!isAdministrator;
+            state.userContextLoaded = true;
         },
 
         setTags: function (state, tags) {

@@ -66,6 +66,8 @@ public sealed class WebAssetsControllerTests
 
         Assert.IsType<FileStreamResult>(controller.GetManagePageScript());
         Assert.IsType<FileStreamResult>(controller.GetManagePageStyles());
+        Assert.IsType<FileStreamResult>(controller.GetBrowseShellScript());
+        Assert.IsType<FileStreamResult>(controller.GetBrowsePageStyles());
     }
 
     [Fact]
@@ -89,6 +91,58 @@ public sealed class WebAssetsControllerTests
         Assert.Contains("request.tagMatchMode = state.tagMatchMode || 'any';", content, StringComparison.Ordinal);
         Assert.Contains("当前筛选条件没有命中记录", content, StringComparison.Ordinal);
         Assert.Contains("当前还没有启用标签。请先到标签管理页创建并启用后再筛选。", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetBrowseShellScript_UsesSingleNavInjectionAndDestroyLifecycleContracts()
+    {
+        WebAssetsController controller = new(
+            new TestFeatureService
+            {
+                IsManagePageEnabled = true
+            },
+            NullLogger<WebAssetsController>.Instance);
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+
+        FileStreamResult result = Assert.IsType<FileStreamResult>(controller.GetBrowseShellScript());
+        string content = ReadContent(result);
+
+        Assert.DoesNotContain("MutationObserver", content, StringComparison.Ordinal);
+        Assert.Contains("findPrimaryHeaderTabsHost", content, StringComparison.Ordinal);
+        Assert.Contains("findFavoritesTab", content, StringComparison.Ordinal);
+        Assert.Contains("insertAdjacentElement('afterend', link);", content, StringComparison.Ordinal);
+        Assert.Contains("cleanupDuplicateNavEntries", content, StringComparison.Ordinal);
+        Assert.Contains("document.body.appendChild(page);", content, StringComparison.Ordinal);
+        Assert.Contains("page.remove();", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FeatureScripts_UseSharedFeatureStateCache_AndAvoidGlobalMutationObservers()
+    {
+        WebAssetsController controller = new(
+            new TestFeatureService
+            {
+                IsManagePageEnabled = true,
+                IsDetailsPageInjectionEnabled = true
+            },
+            NullLogger<WebAssetsController>.Instance);
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+
+        string browseApiContent = ReadContent(Assert.IsType<FileStreamResult>(controller.GetBrowseApiScript()));
+        string detailsApiContent = ReadContent(Assert.IsType<FileStreamResult>(controller.GetDetailsApiScript()));
+        string detailsRatingContent = ReadContent(Assert.IsType<FileStreamResult>(controller.GetDetailsRatingScript()));
+
+        Assert.Contains("window.PersonalRatingsFeatureStateCache", browseApiContent, StringComparison.Ordinal);
+        Assert.Contains("window.PersonalRatingsFeatureStateCache", detailsApiContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("MutationObserver", detailsRatingContent, StringComparison.Ordinal);
+        Assert.Contains("window.PersonalRatingsDetailPanel.hideLauncher();", detailsRatingContent, StringComparison.Ordinal);
+        Assert.Contains("var syncTimerIds = [];", detailsRatingContent, StringComparison.Ordinal);
     }
 
     private static string ReadContent(FileStreamResult result)

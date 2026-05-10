@@ -19,27 +19,43 @@
     var deleteFeatureEnabled = true;
     var isAdministrator = false;
     var isFeatureStateLoading = false;
+    var isFeatureStateLoaded = false;
     var isUserContextLoading = false;
+    var isUserContextLoaded = false;
     var managePageEnabled = true;
     var route = 'personalratings';
+    var syncTimerIds = [];
 
     window.PersonalRatingsDetailPanel.injectStyles();
-    window.PersonalRatingsDetailPanel.ensureLauncher(openManagePage);
-    observeShell();
-    sync();
+    bindShell();
+    scheduleSyncBurst();
 
-    function observeShell() {
-        var mutationObserver = new MutationObserver(function () {
-            sync();
+    function bindShell() {
+        window.addEventListener('hashchange', scheduleSyncBurst);
+        window.addEventListener('popstate', scheduleSyncBurst);
+        window.addEventListener('pageshow', scheduleSyncBurst);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                scheduleSyncBurst();
+            }
         });
+    }
 
-        mutationObserver.observe(document.body, {
-            childList: true,
-            subtree: true
+    function scheduleSyncBurst() {
+        clearSyncTimers();
+        [0, 80, 220, 480].forEach(function (delay) {
+            var timerId = window.setTimeout(function () {
+                sync();
+            }, delay);
+            syncTimerIds.push(timerId);
         });
+    }
 
-        window.addEventListener('hashchange', sync);
-        window.addEventListener('popstate', sync);
+    function clearSyncTimers() {
+        syncTimerIds.forEach(function (timerId) {
+            window.clearTimeout(timerId);
+        });
+        syncTimerIds = [];
     }
 
     function sync() {
@@ -47,25 +63,34 @@
             deleteFeatureEnabled = true;
             isAdministrator = false;
             isFeatureStateLoading = false;
+            isFeatureStateLoaded = false;
             isUserContextLoading = false;
+            isUserContextLoaded = false;
             managePageEnabled = true;
             window.PersonalRatingsDetailPanel.removeDetailPanel();
             window.PersonalRatingsDetailPanel.hideLauncher();
             return;
         }
 
-        ensureFeatureState();
-        ensureUserContext();
-        window.PersonalRatingsDetailPanel.ensureLauncher(openManagePage);
-
-        var detailsPage = document.querySelector('.itemDetailPage:not(.hide)');
         var itemId = getCurrentItemId();
-        window.PersonalRatingsDetailPanel.updateLauncherVisibility(managePageEnabled, isBrowseRoute());
+        var detailsPage = itemId ? document.querySelector('.itemDetailPage:not(.hide)') : null;
 
         if (!detailsPage || !itemId) {
+            currentRequestVersion += 1;
             window.PersonalRatingsDetailPanel.removeDetailPanel();
+            window.PersonalRatingsDetailPanel.hideLauncher();
             return;
         }
+
+        if (!isFeatureStateLoaded) {
+            ensureFeatureState();
+        }
+
+        if (!isUserContextLoaded) {
+            ensureUserContext();
+        }
+
+        window.PersonalRatingsDetailPanel.hideLauncher();
 
         var panel = window.PersonalRatingsDetailPanel.ensureDetailPanel(detailsPage, itemId, {
             onApplyScore: applyScore,
@@ -97,17 +122,14 @@
         window.PersonalRatingsDetailApi.getFeatureState().then(function (result) {
             deleteFeatureEnabled = !!(result && result.IsDeleteFeatureEnabled);
             managePageEnabled = !!(result && result.IsManagePageEnabled);
+            isFeatureStateLoaded = true;
         }).catch(function () {
             deleteFeatureEnabled = true;
             managePageEnabled = true;
+            isFeatureStateLoaded = true;
         }).finally(function () {
             isFeatureStateLoading = false;
-            window.PersonalRatingsDetailPanel.renderAdminControls(
-                document.querySelector('.' + window.PersonalRatingsDetailPanel.panelClassName),
-                isAdministrator,
-                deleteFeatureEnabled,
-                managePageEnabled);
-            window.PersonalRatingsDetailPanel.updateLauncherVisibility(managePageEnabled, isBrowseRoute());
+            sync();
         });
     }
 
@@ -119,15 +141,13 @@
         isUserContextLoading = true;
         window.PersonalRatingsDetailApi.getCurrentUser().then(function (user) {
             isAdministrator = !!(user && user.Policy && user.Policy.IsAdministrator);
+            isUserContextLoaded = true;
         }).catch(function () {
             isAdministrator = false;
+            isUserContextLoaded = true;
         }).finally(function () {
             isUserContextLoading = false;
-            window.PersonalRatingsDetailPanel.renderAdminControls(
-                document.querySelector('.' + window.PersonalRatingsDetailPanel.panelClassName),
-                isAdministrator,
-                deleteFeatureEnabled,
-                managePageEnabled);
+            sync();
         });
     }
 
@@ -139,11 +159,6 @@
 
         var parsedUrl = new URL(window.location.origin + '/' + hash.substring(2));
         return parsedUrl.searchParams.get('id');
-    }
-
-    function isBrowseRoute() {
-        var hash = window.location.hash || '';
-        return hash.indexOf('#/' + route) === 0;
     }
 
     function loadPanelState(itemId) {
