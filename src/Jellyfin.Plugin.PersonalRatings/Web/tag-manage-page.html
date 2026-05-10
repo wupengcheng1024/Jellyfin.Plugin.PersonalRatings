@@ -89,6 +89,7 @@
         <script type="text/javascript">
             (function () {
                 var page = document.querySelector('.personalRatingsTagManagePage');
+                var assetVersion = '20260510-browse-admin-hotfix';
                 var sharedStylesheetId = 'personalRatingsManagePageStylesheet';
                 var pageStylesheetId = 'personalRatingsTagManagePageStylesheet';
                 var scriptId = 'personalRatingsTagManagePageScript';
@@ -97,7 +98,7 @@
                     var sharedStylesheet = document.createElement('link');
                     sharedStylesheet.id = sharedStylesheetId;
                     sharedStylesheet.rel = 'stylesheet';
-                    sharedStylesheet.href = '/Plugins/PersonalRatings/web/manage-page.css';
+                    sharedStylesheet.href = '/Plugins/PersonalRatings/web/manage-page.css?v=' + assetVersion;
                     document.head.appendChild(sharedStylesheet);
                 }
 
@@ -105,7 +106,7 @@
                     var pageStylesheet = document.createElement('link');
                     pageStylesheet.id = pageStylesheetId;
                     pageStylesheet.rel = 'stylesheet';
-                    pageStylesheet.href = '/Plugins/PersonalRatings/web/tag-manage-page.css';
+                    pageStylesheet.href = '/Plugins/PersonalRatings/web/tag-manage-page.css?v=' + assetVersion;
                     document.head.appendChild(pageStylesheet);
                 }
 
@@ -120,7 +121,7 @@
                 if (!document.getElementById(scriptId)) {
                     var script = document.createElement('script');
                     script.id = scriptId;
-                    script.src = '/Plugins/PersonalRatings/web/tag-manage-page.js';
+                    script.src = '/Plugins/PersonalRatings/web/tag-manage-page.js?v=' + assetVersion;
                     script.onload = registerWhenReady;
                     document.body.appendChild(script);
                 } else {

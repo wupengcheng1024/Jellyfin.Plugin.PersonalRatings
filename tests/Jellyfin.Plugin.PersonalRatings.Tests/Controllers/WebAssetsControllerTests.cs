@@ -128,6 +128,9 @@ public sealed class WebAssetsControllerTests
         Assert.Contains("buildNavButton", content, StringComparison.Ordinal);
         Assert.Contains("ensureNavButtonBehavior", content, StringComparison.Ordinal);
         Assert.Contains("handleBrowseNavClick", content, StringComparison.Ordinal);
+        Assert.Contains("openPluginAdminRoute", content, StringComparison.Ordinal);
+        Assert.Contains("restoreHeaderTabsMarkupIfNeeded(false);", content, StringComparison.Ordinal);
+        Assert.Contains("browse-page.css?v=", content, StringComparison.Ordinal);
         Assert.Contains(".skinHeader .headerTabs .emby-tabs-slider", content, StringComparison.Ordinal);
         Assert.Contains("insertAdjacentElement('afterend', navButton);", content, StringComparison.Ordinal);
         Assert.Contains("cleanupDuplicateNavEntries", content, StringComparison.Ordinal);
@@ -177,6 +180,11 @@ public sealed class WebAssetsControllerTests
         Assert.Contains("visibility: hidden !important;", content, StringComparison.Ordinal);
         Assert.Contains("pointer-events: none !important;", content, StringComparison.Ordinal);
         Assert.Contains("display: flex !important;", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseResults.is-list .personalRatingsCardTitleRow", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseResults.is-list .personalRatingsCardBodyTop", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseResults.is-list .personalRatingsPoster", content, StringComparison.Ordinal);
+        Assert.Contains("width: 120px;", content, StringComparison.Ordinal);
+        Assert.Contains("justify-content: flex-start;", content, StringComparison.Ordinal);
     }
 
     [Fact]

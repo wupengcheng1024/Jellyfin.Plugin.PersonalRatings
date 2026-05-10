@@ -52,6 +52,7 @@
             var tags = Array.isArray(item.Tags) ? item.Tags : [];
             var visibleTags = tags.slice(0, 2);
             var overflowTagCount = Math.max(0, tags.length - visibleTags.length);
+            var listBadges = [];
 
             if (item.ProductionYear) {
                 metaParts.push(item.ProductionYear);
@@ -71,6 +72,11 @@
                 secondaryParts.push('最近评分');
             }
 
+            listBadges.push('<span class="personalRatingsScoreBadge">' + this.buildScoreText(item.Score) + '</span>');
+            if (item.IsPendingDelete) {
+                listBadges.push('<span class="personalRatingsStateBadge personalRatingsStateBadge-subtle">待删除</span>');
+            }
+
             return ''
                 + '<a class="personalRatingsCardLink" href="' + detailUrl + '" data-item-id="' + itemId + '">'
                 + '  <article class="personalRatingsCard">'
@@ -85,10 +91,17 @@
                 + '      </div>'
                 + '    </div>'
                 + '    <div class="personalRatingsCardBody">'
-                + '      <h3 class="personalRatingsCardTitle">' + itemName + '</h3>'
-                + '      <div class="personalRatingsCardMeta">' + this.escapeHtml(metaParts.join(' · ') || '未标注类型') + '</div>'
-                + '      <div class="personalRatingsCardSubMeta">' + this.escapeHtml(secondaryParts.join(' · ') || '打开详情页继续操作') + '</div>'
-                + '      <div class="personalRatingsCardTags">' + this.renderTagChips(visibleTags, overflowTagCount) + '</div>'
+                + '      <div class="personalRatingsCardBodyTop">'
+                + '        <div class="personalRatingsCardTitleRow">'
+                + '          <h3 class="personalRatingsCardTitle">' + itemName + '</h3>'
+                + '          <div class="personalRatingsListBadges">' + listBadges.join('') + '</div>'
+                + '        </div>'
+                + '        <div class="personalRatingsCardMeta">' + this.escapeHtml(metaParts.join(' · ') || '未标注类型') + '</div>'
+                + '      </div>'
+                + '      <div class="personalRatingsCardBodyBottom">'
+                + '        <div class="personalRatingsCardSubMeta">' + this.escapeHtml(secondaryParts.join(' · ') || '打开详情页继续操作') + '</div>'
+                + '        <div class="personalRatingsCardTags">' + this.renderTagChips(visibleTags, overflowTagCount) + '</div>'
+                + '      </div>'
                 + '    </div>'
                 + '  </article>'
                 + '</a>';

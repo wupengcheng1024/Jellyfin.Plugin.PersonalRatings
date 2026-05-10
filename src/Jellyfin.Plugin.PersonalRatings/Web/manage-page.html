@@ -191,7 +191,8 @@
         </div>
         <script type="text/javascript">
             (function () {
-                var page = document.querySelector('.personalRatingsManagePage');
+                var page = document.getElementById('personalRatingsManagePage');
+                var assetVersion = '20260510-browse-admin-hotfix';
                 var stylesheetId = 'personalRatingsManagePageStylesheet';
                 var scriptId = 'personalRatingsManagePageScript';
 
@@ -199,7 +200,7 @@
                     var stylesheet = document.createElement('link');
                     stylesheet.id = stylesheetId;
                     stylesheet.rel = 'stylesheet';
-                    stylesheet.href = '/Plugins/PersonalRatings/web/manage-page.css';
+                    stylesheet.href = '/Plugins/PersonalRatings/web/manage-page.css?v=' + assetVersion;
                     document.head.appendChild(stylesheet);
                 }
 
@@ -214,7 +215,7 @@
                 if (!document.getElementById(scriptId)) {
                     var script = document.createElement('script');
                     script.id = scriptId;
-                    script.src = '/Plugins/PersonalRatings/web/manage-page.js';
+                    script.src = '/Plugins/PersonalRatings/web/manage-page.js?v=' + assetVersion;
                     script.onload = registerWhenReady;
                     document.body.appendChild(script);
                 } else {

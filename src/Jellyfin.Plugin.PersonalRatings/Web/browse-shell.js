@@ -20,6 +20,7 @@
 
     var auditRoute = 'configurationpage?name=PersonalRatingsAuditPage';
     var backendRoute = 'configurationpage?name=PersonalRatingsManagePage';
+    var assetVersion = '20260510-browse-admin-hotfix';
     var navClassName = 'personalRatingsNavTab';
     var pageClassName = 'personalRatingsBrowsePage';
     var pageId = 'personalRatingsBrowsePage';
@@ -587,14 +588,20 @@
     }
 
     function ensureStylesheet() {
-        if (document.getElementById(stylesheetId)) {
+        var expectedHref = '/Plugins/PersonalRatings/web/browse-page.css?v=' + assetVersion;
+        var existing = document.getElementById(stylesheetId);
+        if (existing) {
+            if (existing.getAttribute('href') !== expectedHref) {
+                existing.setAttribute('href', expectedHref);
+            }
+
             return;
         }
 
         var stylesheet = document.createElement('link');
         stylesheet.id = stylesheetId;
         stylesheet.rel = 'stylesheet';
-        stylesheet.href = '/Plugins/PersonalRatings/web/browse-page.css';
+        stylesheet.href = expectedHref;
         document.head.appendChild(stylesheet);
     }
 
@@ -759,10 +766,10 @@
                 safeLoad(page);
             },
             onOpenBackend: function () {
-                window.PersonalRatingsBrowseApi.navigateTo(backendRoute);
+                openPluginAdminRoute(backendRoute);
             },
             onOpenAudit: function () {
-                window.PersonalRatingsBrowseApi.navigateTo(auditRoute);
+                openPluginAdminRoute(auditRoute);
             },
             onScoreFilter: function (value) {
                 window.PersonalRatingsBrowseState.setScoreFilter(state, value);
@@ -805,6 +812,18 @@
         window.PersonalRatingsBrowseFilters.syncHeaderActions(page, state);
     }
 
+    function openPluginAdminRoute(targetRoute) {
+        clearPendingNativeTabTarget();
+        clearSyncTimers();
+        setBrowseRouteMode(false);
+        destroyPage();
+        restoreHeaderTabsMarkupIfNeeded(false);
+        cleanupDuplicateNavEntries(findPrimaryHeaderTabsHost());
+        updateNavState();
+        window.PersonalRatingsBrowseApi.navigateTo(targetRoute);
+        scheduleSyncBurst();
+    }
+
     function updateActivePageOffset() {
         var page = document.getElementById(pageId);
         if (page) {
@@ -841,6 +860,10 @@
         state.isTagLoading = false;
         state.needsReload = true;
         page.remove();
+    }
+
+    function clearPendingNativeTabTarget() {
+        pendingNativeTabTarget = null;
     }
 
     function renderMessageState(page, summaryText, message, type) {
