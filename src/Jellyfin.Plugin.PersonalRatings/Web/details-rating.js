@@ -97,6 +97,7 @@
             onClearScore: clearScore,
             onTogglePendingDelete: togglePendingDelete,
             onToggleTag: toggleTag,
+            onCreateTag: createTag,
             onDeletePhysical: deletePhysical,
             onOpenManagePage: openManagePage
         });
@@ -192,6 +193,7 @@
 
             window.PersonalRatingsDetailPanel.syncScoreButtons(panel, 0);
             window.PersonalRatingsDetailPanel.renderTagPickerError(panel);
+            window.PersonalRatingsDetailPanel.setTagCreateBusy(panel, false);
             window.PersonalRatingsDetailPanel.renderSummary(
                 panel,
                 null,
@@ -266,6 +268,69 @@
             loadPanelState(itemId);
         }).catch(function () {
             window.PersonalRatingsDetailPanel.updateActivePanelMessage(itemId, '更新标签失败。');
+        });
+    }
+
+    function createTag(itemId, rawName) {
+        var panel = window.PersonalRatingsDetailPanel.getActivePanel(itemId);
+        if (!panel) {
+            return;
+        }
+
+        var name = String(rawName || '').trim();
+        if (!name) {
+            window.PersonalRatingsDetailPanel.renderTagCreateMessage(panel, '请输入标签名。', 'error');
+            return;
+        }
+
+        window.PersonalRatingsDetailPanel.setTagCreateBusy(panel, true);
+        window.PersonalRatingsDetailPanel.renderTagCreateMessage(panel, '正在新增标签...', 'loading');
+
+        var createdTag = null;
+        window.PersonalRatingsDetailApi.createTag(name, null).then(function (tag) {
+            createdTag = tag;
+            var currentTagIds = window.PersonalRatingsDetailPanel.getSelectedTagIds(panel);
+            var nextTagIds = currentTagIds.slice();
+            if (nextTagIds.indexOf(tag.Id) < 0) {
+                nextTagIds.push(tag.Id);
+            }
+
+            window.PersonalRatingsDetailApi.invalidateAvailableTagsCache();
+            return window.PersonalRatingsDetailApi.replaceItemTags(itemId, nextTagIds).then(function () {
+                window.PersonalRatingsDetailPanel.clearTagCreateInput(panel);
+                window.PersonalRatingsDetailPanel.renderTagCreateMessage(panel, '已新增并选中标签“' + name + '”。', 'success');
+                loadPanelState(itemId);
+            });
+        }).catch(function (error) {
+            window.PersonalRatingsDetailPanel.setTagCreateBusy(panel, false);
+
+            if (createdTag) {
+                window.PersonalRatingsDetailPanel.renderTagCreateMessage(panel, '标签已新增，但自动选中失败，请手动点选。', 'error');
+                window.PersonalRatingsDetailApi.invalidateAvailableTagsCache();
+                loadPanelState(itemId);
+                return;
+            }
+
+            if (error && error.status === 403) {
+                window.PersonalRatingsDetailPanel.renderTagCreateMessage(panel, '只有管理员可以新增标签。', 'error');
+                return;
+            }
+
+            var responseText = '';
+            if (error && error.responseText) {
+                responseText = String(error.responseText);
+            } else if (error && error.responseJSON) {
+                responseText = JSON.stringify(error.responseJSON);
+            } else if (error && error.message) {
+                responseText = String(error.message);
+            }
+
+            if (responseText.indexOf('same name already exists') >= 0) {
+                window.PersonalRatingsDetailPanel.renderTagCreateMessage(panel, '同名标签已存在，请直接点选已有标签。', 'error');
+                return;
+            }
+
+            window.PersonalRatingsDetailPanel.renderTagCreateMessage(panel, '新增标签失败。', 'error');
         });
     }
 

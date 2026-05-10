@@ -30,55 +30,55 @@
                 '.personalRatingsInlineControls {',
                 '  display: inline-flex;',
                 '  align-items: center;',
-                '  gap: 12px;',
-                '  margin-left: 10px;',
-                '  max-width: min(56vw, 620px);',
+                '  gap: 8px;',
+                '  margin-left: 8px;',
+                '  max-width: min(52vw, 560px);',
                 '}',
                 '.personalRatingsQuickButton {',
-                '  min-width: 42px;',
-                '  min-height: 42px;',
-                '  width: 42px;',
-                '  height: 42px;',
+                '  min-width: 36px;',
+                '  min-height: 36px;',
+                '  width: 36px;',
+                '  height: 36px;',
                 '  padding: 0 !important;',
-                '  border-radius: 12px !important;',
-                '  border: 1px solid rgba(216, 139, 47, 0.26) !important;',
-                '  background: rgba(216, 139, 47, 0.12) !important;',
+                '  border-radius: 10px !important;',
+                '  border: 1px solid rgba(216, 139, 47, 0.28) !important;',
+                '  background: rgba(216, 139, 47, 0.1) !important;',
                 '  color: #ffe6c8 !important;',
                 '}',
                 '.personalRatingsQuickButton .material-icons {',
-                '  font-size: 20px;',
+                '  font-size: 18px;',
                 '}',
                 '.personalRatingsQuickButton.is-active {',
                 '  background: rgba(216, 139, 47, 0.2) !important;',
-                '  border-color: rgba(216, 139, 47, 0.4) !important;',
+                '  border-color: rgba(216, 139, 47, 0.48) !important;',
                 '}',
                 '.personalRatingsInlineSummary {',
                 '  display: grid;',
-                '  gap: 4px;',
+                '  gap: 3px;',
                 '  min-width: 0;',
-                '  padding: 6px 0;',
+                '  padding: 2px 0;',
                 '  color: rgba(255, 255, 255, 0.88);',
                 '}',
                 '.personalRatingsInlineScore {',
-                '  font-size: 14px;',
+                '  font-size: 13px;',
                 '  font-weight: 600;',
                 '}',
                 '.personalRatingsInlineTags {',
                 '  display: flex;',
                 '  flex-wrap: wrap;',
-                '  gap: 6px;',
+                '  gap: 4px;',
                 '  min-width: 0;',
                 '}',
                 '.personalRatingsInlineTag {',
                 '  display: inline-flex;',
                 '  align-items: center;',
-                '  min-height: 26px;',
-                '  padding: 0 10px;',
+                '  min-height: 21px;',
+                '  padding: 0 8px;',
                 '  border-radius: 999px;',
                 '  border: 1px solid rgba(255, 255, 255, 0.12);',
                 '  background: rgba(255, 255, 255, 0.05);',
                 '  color: rgba(255, 255, 255, 0.78);',
-                '  font-size: 12px;',
+                '  font-size: 11px;',
                 '  line-height: 1;',
                 '}',
                 '.personalRatingsInlineTag-empty {',
@@ -86,13 +86,13 @@
                 '}',
                 '.personalRatingsDetailPanel {',
                 '  display: block;',
-                '  margin-top: 14px;',
-                '  padding: 18px 20px;',
-                '  border-radius: 18px;',
+                '  margin-top: 12px;',
+                '  padding: 14px 16px;',
+                '  border-radius: 16px;',
                 '  border: 1px solid rgba(255, 255, 255, 0.08);',
                 '  background: linear-gradient(180deg, rgba(15, 20, 28, 0.94), rgba(18, 24, 33, 0.9));',
                 '  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);',
-                '  max-width: min(780px, calc(100vw - 64px));',
+                '  max-width: min(700px, calc(100vw - 56px));',
                 '}',
                 '.personalRatingsDetailPanel.is-collapsed {',
                 '  display: none;',
@@ -100,34 +100,35 @@
                 '.personalRatingsPanelHeader {',
                 '  display: flex;',
                 '  justify-content: space-between;',
-                '  gap: 12px;',
+                '  gap: 10px;',
                 '  align-items: center;',
                 '}',
                 '.personalRatingsPanelHeaderActions {',
                 '  display: flex;',
-                '  gap: 10px;',
+                '  gap: 8px;',
                 '  align-items: center;',
                 '  flex-wrap: wrap;',
                 '}',
                 '.personalRatingsDetailPanel .button-flat {',
-                '  min-height: 40px;',
-                '  padding: 0 14px;',
-                '  border-radius: 12px;',
+                '  min-height: 34px;',
+                '  padding: 0 12px;',
+                '  border-radius: 10px;',
                 '  border: 1px solid rgba(255, 255, 255, 0.12);',
                 '  background: rgba(255, 255, 255, 0.05);',
                 '  color: rgba(255, 255, 255, 0.9);',
+                '  font-size: 13px;',
                 '}',
                 '.personalRatingsDetailPanel .button-flat:hover {',
                 '  background: rgba(255, 255, 255, 0.09);',
                 '  border-color: rgba(255, 255, 255, 0.18);',
                 '}',
                 '.personalRatingsPanelHeader h3 {',
-                '  margin: 4px 0 0;',
-                '  font-size: 28px;',
+                '  margin: 2px 0 0;',
+                '  font-size: 24px;',
                 '}',
                 '.personalRatingsPanelEyebrow {',
-                '  font-size: 11px;',
-                '  letter-spacing: 0.14em;',
+                '  font-size: 10px;',
+                '  letter-spacing: 0.12em;',
                 '  text-transform: uppercase;',
                 '  color: rgba(255, 255, 255, 0.62);',
                 '}',
@@ -138,44 +139,139 @@
                 '  font-weight: 600;',
                 '}',
                 '.personalRatingsPanelCloseButton {',
-                '  font-weight: 600;',
+                '  display: inline-flex;',
+                '  align-items: center;',
+                '  justify-content: center;',
+                '  width: 28px;',
+                '  height: 28px;',
+                '  min-width: 28px !important;',
+                '  min-height: 28px !important;',
+                '  padding: 0 !important;',
+                '  border: none !important;',
+                '  background: transparent !important;',
+                '  color: rgba(255, 255, 255, 0.72) !important;',
+                '  box-shadow: none !important;',
+                '  border-radius: 999px !important;',
+                '}',
+                '.personalRatingsPanelCloseButton .material-icons {',
+                '  font-size: 18px;',
+                '}',
+                '.personalRatingsPanelCloseButton:hover {',
+                '  color: rgba(255, 255, 255, 0.96) !important;',
+                '  background: rgba(255, 255, 255, 0.06) !important;',
                 '}',
                 '.personalRatingsScoreRow, .personalRatingsMetaRow {',
                 '  display: flex;',
                 '  flex-wrap: wrap;',
-                '  gap: 10px;',
-                '  margin-top: 14px;',
+                '  gap: 8px;',
+                '  margin-top: 12px;',
                 '}',
                 '.personalRatingsScoreButton {',
-                '  min-width: 58px;',
+                '  min-width: 48px;',
                 '  font-weight: 600;',
                 '}',
                 '.personalRatingsTagSection {',
-                '  margin-top: 16px;',
+                '  margin-top: 14px;',
+                '}',
+                '.personalRatingsTagSectionHeaderRow {',
+                '  display: flex;',
+                '  justify-content: space-between;',
+                '  gap: 10px;',
+                '  align-items: center;',
+                '  flex-wrap: wrap;',
                 '}',
                 '.personalRatingsTagSectionHeader {',
-                '  font-size: 12px;',
+                '  font-size: 11px;',
                 '  letter-spacing: 0.04em;',
                 '  color: rgba(255, 255, 255, 0.68);',
+                '}',
+                '.personalRatingsTagCreateRow {',
+                '  display: flex;',
+                '  gap: 8px;',
+                '  align-items: center;',
+                '  flex-wrap: wrap;',
+                '}',
+                '.personalRatingsTagCreateForm {',
+                '  display: inline-flex;',
+                '  gap: 6px;',
+                '  align-items: center;',
+                '}',
+                '.personalRatingsTagCreateInput {',
+                '  min-width: 132px;',
+                '  min-height: 30px;',
+                '  padding: 0 10px;',
+                '  border-radius: 999px;',
+                '  border: 1px solid rgba(255, 255, 255, 0.12);',
+                '  background: rgba(255, 255, 255, 0.05);',
+                '  color: rgba(255, 255, 255, 0.92);',
+                '  font-size: 12px;',
+                '}',
+                '.personalRatingsTagCreateInput::placeholder {',
+                '  color: rgba(255, 255, 255, 0.4);',
+                '}',
+                '.personalRatingsTagCreateInput:focus {',
+                '  outline: none;',
+                '  border-color: rgba(0, 164, 220, 0.34);',
+                '  box-shadow: 0 0 0 3px rgba(0, 164, 220, 0.12);',
+                '}',
+                '.personalRatingsTagCreateSubmit {',
+                '  display: inline-flex;',
+                '  align-items: center;',
+                '  justify-content: center;',
+                '  width: 30px;',
+                '  height: 30px;',
+                '  min-width: 30px !important;',
+                '  min-height: 30px !important;',
+                '  padding: 0 !important;',
+                '  border-radius: 999px !important;',
+                '  border-color: rgba(0, 164, 220, 0.28) !important;',
+                '  background: rgba(0, 164, 220, 0.12) !important;',
+                '  color: #dff6ff !important;',
+                '}',
+                '.personalRatingsTagCreateSubmit .material-icons {',
+                '  font-size: 16px;',
+                '}',
+                '.personalRatingsTagCreateSubmit:disabled {',
+                '  opacity: 0.46;',
+                '  cursor: wait;',
+                '}',
+                '.personalRatingsTagCreateMessage {',
+                '  min-height: 18px;',
+                '  margin-top: 6px;',
+                '  font-size: 11px;',
+                '  line-height: 1.4;',
+                '  color: rgba(255, 255, 255, 0.52);',
+                '}',
+                '.personalRatingsTagCreateMessage.is-error {',
+                '  color: #ffb1a8;',
+                '}',
+                '.personalRatingsTagCreateMessage.is-success {',
+                '  color: #9fe3b7;',
+                '}',
+                '.personalRatingsTagCreateMessage.is-loading {',
+                '  color: #f0c28b;',
                 '}',
                 '.personalRatingsTagPicker {',
                 '  display: flex;',
                 '  flex-wrap: wrap;',
-                '  gap: 10px;',
-                '  margin-top: 10px;',
+                '  gap: 8px;',
+                '  margin-top: 8px;',
                 '}',
                 '.personalRatingsTagButton {',
-                '  min-height: 38px;',
+                '  min-height: 30px;',
                 '  border-radius: 999px !important;',
-                '  padding: 0 14px !important;',
+                '  padding: 0 10px !important;',
                 '  font-weight: 600;',
+                '  color: rgba(255, 255, 255, 0.68) !important;',
+                '  background: rgba(255, 255, 255, 0.03) !important;',
                 '}',
                 '.personalRatingsTagButton.is-active {',
-                '  border-color: rgba(216, 139, 47, 0.42);',
-                '  color: #fff8ef;',
+                '  color: #fffaf2 !important;',
+                '  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.03);',
                 '}',
                 '.personalRatingsTagHint {',
                 '  color: rgba(255, 255, 255, 0.58);',
+                '  font-size: 12px;',
                 '}',
                 '.personalRatingsScoreButton.is-active {',
                 '  background: rgba(229, 139, 47, 0.22);',
@@ -195,10 +291,11 @@
                 '  background: rgba(255, 107, 107, 0.16);',
                 '}',
                 '.personalRatingsDetailSummary {',
-                '  margin-top: 14px;',
+                '  margin-top: 12px;',
                 '  color: rgba(255, 255, 255, 0.74);',
-                '  line-height: 1.55;',
-                '  padding-top: 6px;',
+                '  line-height: 1.45;',
+                '  font-size: 13px;',
+                '  padding-top: 4px;',
                 '}',
                 '#' + launcherId + ' {',
                 '  position: fixed;',
@@ -220,7 +317,7 @@
                 '    display: flex;',
                 '    width: 100%;',
                 '    margin-left: 0;',
-                '    margin-top: 10px;',
+                '    margin-top: 8px;',
                 '    max-width: none;',
                 '    align-items: flex-start;',
                 '  }',
@@ -228,12 +325,22 @@
                 '    width: 100%;',
                 '  }',
                 '  .personalRatingsDetailPanel {',
-                '    padding: 16px;',
+                '    padding: 14px;',
                 '    max-width: none;',
                 '  }',
                 '  .personalRatingsPanelHeader {',
                 '    flex-direction: column;',
                 '    align-items: flex-start;',
+                '  }',
+                '  .personalRatingsTagSectionHeaderRow {',
+                '    align-items: flex-start;',
+                '  }',
+                '  .personalRatingsTagCreateForm {',
+                '    width: 100%;',
+                '  }',
+                '  .personalRatingsTagCreateInput {',
+                '    flex: 1 1 auto;',
+                '    min-width: 0;',
                 '  }',
                 '  #' + launcherId + ' {',
                 '    right: 12px;',
@@ -327,7 +434,9 @@
                     '  </div>',
                     '  <div class="personalRatingsPanelHeaderActions">',
                     '    <button type="button" class="button-flat personalRatingsManageButton">打开打分库</button>',
-                    '    <button type="button" class="button-flat personalRatingsPanelCloseButton">关闭</button>',
+                    '    <button type="button" class="personalRatingsPanelCloseButton" title="关闭" aria-label="关闭">',
+                    '      <span class="material-icons" aria-hidden="true">close</span>',
+                    '    </button>',
                     '  </div>',
                     '</div>',
                     '<div class="personalRatingsScoreRow">',
@@ -343,7 +452,18 @@
                     '  <button type="button" class="button-flat personalRatingsDeleteButton" hidden="hidden">物理删除</button>',
                     '</div>',
                     '<div class="personalRatingsTagSection">',
-                    '  <div class="personalRatingsTagSectionHeader">标签</div>',
+                    '  <div class="personalRatingsTagSectionHeaderRow">',
+                    '    <div class="personalRatingsTagSectionHeader">标签</div>',
+                    '    <div class="personalRatingsTagCreateRow" hidden="hidden">',
+                    '      <form class="personalRatingsTagCreateForm" autocomplete="off">',
+                    '        <input type="text" class="personalRatingsTagCreateInput" maxlength="48" placeholder="快捷新增标签" />',
+                    '        <button type="submit" class="button-flat personalRatingsTagCreateSubmit" title="新增标签" aria-label="新增标签">',
+                    '          <span class="material-icons" aria-hidden="true">add</span>',
+                    '        </button>',
+                    '      </form>',
+                    '    </div>',
+                    '  </div>',
+                    '  <div class="personalRatingsTagCreateMessage" aria-live="polite"></div>',
                     '  <div class="personalRatingsTagPicker">正在读取标签...</div>',
                     '</div>',
                     '<div class="personalRatingsDetailSummary">正在读取当前评分...</div>'
@@ -392,6 +512,17 @@
                     }
                 });
 
+                panel.addEventListener('submit', function (event) {
+                    var target = event.target;
+                    if (!target || !target.classList || !target.classList.contains('personalRatingsTagCreateForm')) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    var input = target.querySelector('.personalRatingsTagCreateInput');
+                    callbacks.onCreateTag(panel.dataset.itemId, input ? input.value : '');
+                });
+
                 buttonRow.insertAdjacentElement('afterend', panel);
             }
 
@@ -408,6 +539,9 @@
                 this.renderSummary(panel, null, '正在读取当前评分...');
                 this.renderTagPickerLoading(panel);
                 this.syncScoreButtons(panel, 0);
+                this.renderTagCreateMessage(panel, '', '');
+                this.clearTagCreateInput(panel);
+                this.setTagCreateBusy(panel, false);
             }
 
             return panel;
@@ -444,6 +578,11 @@
             var manageButton = panel.querySelector('.personalRatingsManageButton');
             if (manageButton) {
                 manageButton.hidden = !managePageEnabled;
+            }
+
+            var createRow = panel.querySelector('.personalRatingsTagCreateRow');
+            if (createRow) {
+                createRow.hidden = !isAdministrator;
             }
         },
 
@@ -482,12 +621,12 @@
                 var color = window.PersonalRatingsDetailPanel.escapeHtml(tag.Color || '#d88b2f');
                 var style = 'border-color:' + color + ';';
                 if (isActive) {
-                    style += ' background:' + window.PersonalRatingsDetailPanel.hexToTransparent(tag.Color || '#d88b2f', 0.22) + ';';
+                    style += ' background:' + window.PersonalRatingsDetailPanel.hexToTransparent(tag.Color || '#d88b2f', 0.26) + '; color:#fffaf2;';
                 }
 
                 return '<button type="button" class="button-flat personalRatingsTagButton'
                     + (isActive ? ' is-active' : '')
-                    + '" data-tag-id="' + tag.Id + '" style="' + style + '">'
+                    + '" aria-pressed="' + (isActive ? 'true' : 'false') + '" data-tag-id="' + tag.Id + '" style="' + style + '">'
                     + window.PersonalRatingsDetailPanel.escapeHtml(tag.Name)
                     + '</button>';
             }).join('');
@@ -503,6 +642,7 @@
             this.renderTagPicker(panel, availableTags, selectedTags);
             this.renderSummary(panel, rating, this.buildSummary(rating, selectedTags));
             this.syncScoreButtons(panel, rating && rating.Score ? rating.Score : 0);
+            this.setTagCreateBusy(panel, false);
         },
 
         renderSummary: function (panel, result, message) {
@@ -571,6 +711,39 @@
             }).join('') + (overflowCount > 0
                 ? '<span class="personalRatingsInlineTag">+' + overflowCount + '</span>'
                 : '');
+        },
+
+        renderTagCreateMessage: function (panel, message, status) {
+            var messageNode = panel ? panel.querySelector('.personalRatingsTagCreateMessage') : null;
+            if (!messageNode) {
+                return;
+            }
+
+            messageNode.textContent = message || '';
+            messageNode.classList.remove('is-error', 'is-success', 'is-loading');
+            if (status) {
+                messageNode.classList.add('is-' + status);
+            }
+        },
+
+        clearTagCreateInput: function (panel) {
+            var input = panel ? panel.querySelector('.personalRatingsTagCreateInput') : null;
+            if (input) {
+                input.value = '';
+            }
+        },
+
+        setTagCreateBusy: function (panel, isBusy) {
+            var input = panel ? panel.querySelector('.personalRatingsTagCreateInput') : null;
+            var button = panel ? panel.querySelector('.personalRatingsTagCreateSubmit') : null;
+
+            if (input) {
+                input.disabled = !!isBusy;
+            }
+
+            if (button) {
+                button.disabled = !!isBusy;
+            }
         },
 
         setPanelOpen: function (panel, isOpen) {

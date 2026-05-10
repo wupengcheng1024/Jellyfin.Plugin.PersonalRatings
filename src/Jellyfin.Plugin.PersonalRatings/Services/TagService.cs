@@ -57,9 +57,12 @@ internal sealed class TagService : ITagService
     {
         EnsureAdministrator(operatorUserId);
 
+        string normalizedName = NormalizeTagName(request.Name);
+        await EnsureTagNameAvailableAsync(normalizedName, null, cancellationToken).ConfigureAwait(false);
+
         TagDefinition definition = new()
         {
-            Name = NormalizeTagName(request.Name),
+            Name = normalizedName,
             Color = NormalizeTagColor(request.Color),
             SortOrder = request.SortOrder,
             IsEnabled = request.IsEnabled,
@@ -93,7 +96,10 @@ internal sealed class TagService : ITagService
             throw new KeyNotFoundException("The requested tag definition does not exist.");
         }
 
-        existing.Name = NormalizeTagName(request.Name);
+        string normalizedName = NormalizeTagName(request.Name);
+        await EnsureTagNameAvailableAsync(normalizedName, existing.Id, cancellationToken).ConfigureAwait(false);
+
+        existing.Name = normalizedName;
         existing.Color = NormalizeTagColor(request.Color);
         existing.SortOrder = request.SortOrder;
         existing.IsEnabled = request.IsEnabled;
@@ -199,6 +205,22 @@ internal sealed class TagService : ITagService
         {
             throw new UnauthorizedAccessException("Tag definition management requires administrator privileges.");
         }
+    }
+
+    private async Task EnsureTagNameAvailableAsync(string normalizedName, long? currentTagId, CancellationToken cancellationToken)
+    {
+        TagDefinition? existing = await _tagRepository.GetDefinitionByNameAsync(normalizedName, cancellationToken).ConfigureAwait(false);
+        if (existing is null)
+        {
+            return;
+        }
+
+        if (currentTagId.HasValue && existing.Id == currentTagId.Value)
+        {
+            return;
+        }
+
+        throw new ArgumentException("A tag with the same name already exists.", nameof(normalizedName));
     }
 
     private async Task<JellyfinItemMetadata> RequireAccessibleMetadataAsync(Guid itemId, Guid userId, CancellationToken cancellationToken)

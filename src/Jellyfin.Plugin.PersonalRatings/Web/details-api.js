@@ -87,7 +87,12 @@
             });
         },
 
-        getAvailableTags: function () {
+        getAvailableTags: function (forceReload) {
+            if (forceReload) {
+                availableTagsCache = null;
+                availableTagsPromise = null;
+            }
+
             if (Array.isArray(availableTagsCache)) {
                 return Promise.resolve(availableTagsCache);
             }
@@ -107,6 +112,21 @@
             });
 
             return availableTagsPromise;
+        },
+
+        createTag: function (name, color) {
+            var payload = {
+                name: name,
+                color: color || null,
+                sortOrder: 0,
+                isEnabled: true
+            };
+
+            return this.postJson('Plugins/PersonalRatings/tags', payload).then(function (result) {
+                availableTagsCache = null;
+                availableTagsPromise = null;
+                return result;
+            });
         },
 
         setRating: function (itemId, score) {
@@ -180,6 +200,11 @@
 
         getApiClient: function () {
             return window.ApiClient;
+        },
+
+        invalidateAvailableTagsCache: function () {
+            availableTagsCache = null;
+            availableTagsPromise = null;
         }
     };
 })();

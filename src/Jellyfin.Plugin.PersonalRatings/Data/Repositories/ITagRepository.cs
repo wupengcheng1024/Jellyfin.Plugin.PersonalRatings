@@ -10,6 +10,8 @@ internal interface ITagRepository
 
     Task<TagDefinition?> GetDefinitionAsync(long tagId, CancellationToken cancellationToken);
 
+    Task<TagDefinition?> GetDefinitionByNameAsync(string name, CancellationToken cancellationToken);
+
     Task<TagDefinition> CreateDefinitionAsync(TagDefinition definition, CancellationToken cancellationToken);
 
     Task<TagDefinition?> UpdateDefinitionAsync(TagDefinition definition, CancellationToken cancellationToken);

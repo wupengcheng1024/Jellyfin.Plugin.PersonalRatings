@@ -1,7 +1,10 @@
 using Jellyfin.Plugin.PersonalRatings.Data.Repositories;
 using Jellyfin.Plugin.PersonalRatings.Models.Entities;
+using Jellyfin.Plugin.PersonalRatings.Models.Requests;
 using Jellyfin.Plugin.PersonalRatings.Models.Responses;
 using Jellyfin.Plugin.PersonalRatings.Services;
+using Jellyfin.Data.Entities;
+using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -11,6 +14,103 @@ namespace Jellyfin.Plugin.PersonalRatings.Tests.Services;
 
 public sealed class TagServiceTests
 {
+    [Fact]
+    public async Task CreateTagDefinitionAsync_ThrowsArgumentException_WhenSameNameAlreadyExistsIgnoringCase()
+    {
+        Guid userId = Guid.NewGuid();
+        TagDefinition existing = new()
+        {
+            Id = 12,
+            Name = "日本",
+            Color = "#d88b2f",
+            SortOrder = 0,
+            IsEnabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        CreateTagDefinitionRequest request = new()
+        {
+            Name = "  日本  ",
+            Color = "#ffffff",
+            SortOrder = 0,
+            IsEnabled = true
+        };
+
+        Mock<ITagRepository> tagRepository = new(MockBehavior.Strict);
+        tagRepository
+            .Setup(repository => repository.GetDefinitionByNameAsync("日本", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+        Mock<IRatingRepository> ratingRepository = new(MockBehavior.Strict);
+        Mock<IJellyfinItemResolver> itemResolver = new(MockBehavior.Strict);
+        Mock<IUserManager> userManager = CreateUserManager(userId, isAdministrator: true);
+        TagService service = new(
+            tagRepository.Object,
+            ratingRepository.Object,
+            itemResolver.Object,
+            userManager.Object,
+            NullLogger<TagService>.Instance);
+
+        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.CreateTagDefinitionAsync(userId, request, CancellationToken.None));
+
+        Assert.Contains("same name already exists", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task UpdateTagDefinitionAsync_ThrowsArgumentException_WhenRenamingToExistingNameIgnoringCase()
+    {
+        Guid userId = Guid.NewGuid();
+        TagDefinition current = new()
+        {
+            Id = 7,
+            Name = "动作",
+            Color = "#d88b2f",
+            SortOrder = 10,
+            IsEnabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        TagDefinition other = new()
+        {
+            Id = 11,
+            Name = "日本",
+            Color = "#d88b2f",
+            SortOrder = 20,
+            IsEnabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        UpdateTagDefinitionRequest request = new()
+        {
+            Name = "  日本  ",
+            Color = "#d88b2f",
+            SortOrder = 10,
+            IsEnabled = true
+        };
+
+        Mock<ITagRepository> tagRepository = new(MockBehavior.Strict);
+        tagRepository
+            .Setup(repository => repository.GetDefinitionAsync(7, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(current);
+        tagRepository
+            .Setup(repository => repository.GetDefinitionByNameAsync("日本", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(other);
+        Mock<IRatingRepository> ratingRepository = new(MockBehavior.Strict);
+        Mock<IJellyfinItemResolver> itemResolver = new(MockBehavior.Strict);
+        Mock<IUserManager> userManager = CreateUserManager(userId, isAdministrator: true);
+        TagService service = new(
+            tagRepository.Object,
+            ratingRepository.Object,
+            itemResolver.Object,
+            userManager.Object,
+            NullLogger<TagService>.Instance);
+
+        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.UpdateTagDefinitionAsync(userId, 7, request, CancellationToken.None));
+
+        Assert.Contains("same name already exists", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public async Task BatchAddTagsAsync_ReturnsUpdatedItemsWithTags()
     {
@@ -126,5 +226,21 @@ public sealed class TagServiceTests
             service.BatchAddTagsAsync(Guid.NewGuid(), [Guid.NewGuid()], Array.Empty<long>(), CancellationToken.None));
 
         Assert.Contains("tagId", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static Mock<IUserManager> CreateUserManager(Guid userId, bool isAdministrator)
+    {
+        User user = new("tag-test-user", "tag-auth", "tag-reset")
+        {
+            Id = userId
+        };
+        user.SetPermission(PermissionKind.IsAdministrator, isAdministrator);
+
+        Mock<IUserManager> userManager = new(MockBehavior.Strict);
+        userManager
+            .Setup(manager => manager.GetUserById(userId))
+            .Returns(user);
+
+        return userManager;
     }
 }

@@ -20,7 +20,7 @@
 
     var auditRoute = 'configurationpage?name=PersonalRatingsAuditPage';
     var backendRoute = 'configurationpage?name=PersonalRatingsManagePage';
-    var assetVersion = '20260510-native-browse-v5';
+    var assetVersion = '20260510-native-browse-v6';
     var navClassName = 'personalRatingsNavTab';
     var pageClassName = 'personalRatingsBrowsePage';
     var pageId = 'personalRatingsBrowsePage';
@@ -663,7 +663,9 @@
             '          <div class="personalRatingsBrowseFilterSheetTitle">筛选与搜索</div>',
             '          <div class="personalRatingsBrowseFilterSheetSummary">可按评分、标签、播放状态和类型缩小结果范围。</div>',
             '        </div>',
-            '        <button type="button" class="button-flat personalRatingsBrowseSheetCloseButton">关闭</button>',
+            '        <button type="button" class="personalRatingsBrowseSheetCloseButton" title="关闭" aria-label="关闭">',
+            '          <span class="material-icons" aria-hidden="true">close</span>',
+            '        </button>',
             '      </div>',
             '      <form class="personalRatingsBrowseSearchForm personalRatingsBrowseFilterRow personalRatingsBrowsePanelSection personalRatingsBrowsePanelSection-search">',
             '        <label class="personalRatingsBrowseField personalRatingsBrowseField-search">',

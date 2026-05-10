@@ -102,6 +102,29 @@ internal sealed class TagRepository : ITagRepository
         return ReadDefinition(reader);
     }
 
+    public async Task<TagDefinition?> GetDefinitionByNameAsync(string name, CancellationToken cancellationToken)
+    {
+        await using SqliteConnection connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id, name, color, sort_order, is_enabled, created_at, updated_at
+            FROM tag_definitions
+            WHERE name = @name COLLATE NOCASE
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("@name", name);
+
+        await using SqliteDataReader reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return ReadDefinition(reader);
+    }
+
     public async Task<TagDefinition> CreateDefinitionAsync(TagDefinition definition, CancellationToken cancellationToken)
     {
         await using SqliteConnection connection = _connectionFactory.CreateConnection();

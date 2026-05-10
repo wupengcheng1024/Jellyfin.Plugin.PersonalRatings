@@ -141,6 +141,8 @@ public sealed class WebAssetsControllerTests
         Assert.Contains("personalRatingsBrowsePanelSection-search", content, StringComparison.Ordinal);
         Assert.Contains("personalRatingsBrowsePanelSection-sort", content, StringComparison.Ordinal);
         Assert.Contains("personalRatingsBrowsePanelSection-filterGrid", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsBrowseSheetCloseButton\" title=\"关闭\"", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("personalRatingsBrowseSheetCloseButton\">关闭</button>", content, StringComparison.Ordinal);
         Assert.Contains("restorePageScroll(page);", content, StringComparison.Ordinal);
         Assert.Contains(".skinHeader .headerTabs .emby-tabs-slider", content, StringComparison.Ordinal);
         Assert.Contains("insertAdjacentElement('afterend', navButton);", content, StringComparison.Ordinal);
@@ -203,6 +205,34 @@ public sealed class WebAssetsControllerTests
         Assert.Contains(".personalRatingsMediaCard .cardBox", content, StringComparison.Ordinal);
         Assert.Contains(".personalRatingsListItem", content, StringComparison.Ordinal);
         Assert.Contains("grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GetDetailPanelScript_ContainsQuickCreateTagAndIconCloseContracts()
+    {
+        WebAssetsController controller = new(
+            new TestFeatureService
+            {
+                IsDetailsPageInjectionEnabled = true
+            },
+            NullLogger<WebAssetsController>.Instance);
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+
+        FileStreamResult result = Assert.IsType<FileStreamResult>(controller.GetDetailsPanelScript());
+        string content = ReadContent(result);
+
+        Assert.Contains("personalRatingsTagCreateForm", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsTagCreateInput", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsTagCreateSubmit", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsTagCreateMessage", content, StringComparison.Ordinal);
+        Assert.Contains("renderTagCreateMessage", content, StringComparison.Ordinal);
+        Assert.Contains("setTagCreateBusy", content, StringComparison.Ordinal);
+        Assert.Contains("clearTagCreateInput", content, StringComparison.Ordinal);
+        Assert.Contains("material-icons\" aria-hidden=\"true\">close</span>", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("personalRatingsPanelCloseButton\">关闭</button>", content, StringComparison.Ordinal);
     }
 
     [Fact]
