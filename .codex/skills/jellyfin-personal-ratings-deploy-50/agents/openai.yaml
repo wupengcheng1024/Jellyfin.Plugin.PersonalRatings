@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jellyfin Ratings Deploy 50"
+  short_description: "用于把插件稳定部署到 50 机器的 Jellyfin Docker 容器"
+  default_prompt: "使用 $jellyfin-personal-ratings-deploy-50 来发布 Jellyfin Personal Ratings 到 50 机器，并验证容器健康与插件加载日志。"

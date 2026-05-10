@@ -23,6 +23,9 @@ metadata:
    - 批量操作是否有参数校验和日志
    - 管理员删除是否有权限校验与审计
 4. 如果没有发现问题，也要说明残余风险和未验证项。
+5. 如果验收依赖真实页面截图或线上服务器行为。
+   - 页面验证转到 `../jellyfin-personal-ratings-browser-qa/SKILL.md`
+   - 50 服务器部署验证转到 `../jellyfin-personal-ratings-deploy-50/SKILL.md`
 
 ## 什么时候读取 reference
 

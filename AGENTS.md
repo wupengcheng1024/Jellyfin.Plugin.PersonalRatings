@@ -54,6 +54,8 @@
 - 后端插件、SQLite、API、Repository / Service：读取 `.codex/skills/jellyfin-personal-ratings-backend/SKILL.md`
 - Web 详情页注入、管理页、静态资源：读取 `.codex/skills/jellyfin-personal-ratings-web/SKILL.md`
 - 代码评审、验收、发布前检查：读取 `.codex/skills/jellyfin-personal-ratings-review/SKILL.md`
+- 真实 Jellyfin Web 截图、前后台实机验证、缓存排查：读取 `.codex/skills/jellyfin-personal-ratings-browser-qa/SKILL.md`
+- 部署到局域网 `50` 服务器、Docker 重启与日志确认：读取 `.codex/skills/jellyfin-personal-ratings-deploy-50/SKILL.md`
 
 ## 验证要求
 

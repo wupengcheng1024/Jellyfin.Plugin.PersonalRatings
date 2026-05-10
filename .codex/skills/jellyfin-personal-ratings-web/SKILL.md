@@ -33,6 +33,8 @@ metadata:
 5. 保持渐进增强。
    - 不依赖不存在的 Jellyfin 前端扩展点
    - 不确定注入点时，用最小原型验证并保留降级空间
+6. 如果用户要求“你自己截图看看”或需要真实页面回归。
+   - 转到 `../jellyfin-personal-ratings-browser-qa/SKILL.md`
 
 ## 什么时候读取 reference
 

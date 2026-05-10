@@ -41,6 +41,8 @@ metadata:
 - 后端插件、数据层、API、Jellyfin 适配：转到 `../jellyfin-personal-ratings-backend/SKILL.md`
 - Web 注入、详情页、管理页、静态资源：转到 `../jellyfin-personal-ratings-web/SKILL.md`
 - 代码评审、发布前检查、验收：转到 `../jellyfin-personal-ratings-review/SKILL.md`
+- 真实页面截图、LAN Jellyfin 页面验证、缓存排查：转到 `../jellyfin-personal-ratings-browser-qa/SKILL.md`
+- 部署到 50、容器重启、插件日志确认：转到 `../jellyfin-personal-ratings-deploy-50/SKILL.md`
 
 ## 约束
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jellyfin Ratings Browser QA"
+  short_description: "用于 Jellyfin 10.10.7 Web 的稳定截图与实机页面验证"
+  default_prompt: "使用 $jellyfin-personal-ratings-browser-qa 来对 Jellyfin Personal Ratings 的真实 Web 页面做稳定截图、路由回归和缓存排查。"
