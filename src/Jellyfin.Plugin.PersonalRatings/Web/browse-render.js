@@ -33,7 +33,7 @@
                     + '</div>';
             } else {
                 cardsNode.innerHTML = items.map(function (item) {
-                    return window.PersonalRatingsBrowseRenderer.renderItemCard(item);
+                    return window.PersonalRatingsBrowseRenderer.renderItemCard(item, state.viewMode);
                 }).join('');
             }
 
@@ -41,7 +41,7 @@
             this.renderPagination(page, result, state);
         },
 
-        renderItemCard: function (item) {
+        renderItemCard: function (item, viewMode) {
             var itemId = this.escapeHtml(item.ItemId);
             var itemName = this.escapeHtml(item.ItemName || '未命名条目');
             var imageUrl = window.PersonalRatingsBrowseApi.buildImageUrl(item.ItemId);
@@ -77,31 +77,45 @@
                 listBadges.push('<span class="personalRatingsStateBadge personalRatingsStateBadge-subtle">待删除</span>');
             }
 
+            if (viewMode === 'list') {
+                return ''
+                    + '<a class="personalRatingsCardLink personalRatingsCardLink-list" href="' + detailUrl + '" data-item-id="' + itemId + '">'
+                    + '  <article class="personalRatingsListItem listItem">'
+                    + '    <div class="personalRatingsListItemImage" style="background-image:url(\'' + imageUrl + '\')"></div>'
+                    + '    <div class="personalRatingsListItemBody">'
+                    + '      <div class="personalRatingsCardTitleRow">'
+                    + '        <h3 class="personalRatingsCardTitle">' + itemName + '</h3>'
+                    + '        <div class="personalRatingsListBadges">' + listBadges.join('') + '</div>'
+                    + '      </div>'
+                    + '      <div class="personalRatingsCardMeta">' + this.escapeHtml(metaParts.join(' · ') || '未标注类型') + '</div>'
+                    + '      <div class="personalRatingsCardSubMeta">' + this.escapeHtml(secondaryParts.join(' · ') || '打开详情页继续操作') + '</div>'
+                    + '      <div class="personalRatingsCardTags">' + this.renderTagChips(visibleTags, overflowTagCount) + '</div>'
+                    + '    </div>'
+                    + '  </article>'
+                    + '</a>';
+            }
+
             return ''
-                + '<a class="personalRatingsCardLink" href="' + detailUrl + '" data-item-id="' + itemId + '">'
-                + '  <article class="personalRatingsCard">'
-                + '    <div class="personalRatingsPoster">'
-                + '      <div class="personalRatingsPosterImage" style="background-image:url(\'' + imageUrl + '\')"></div>'
-                + '      <div class="personalRatingsPosterOverlay"></div>'
-                + '      <div class="personalRatingsPosterBadges">'
-                + '        <span class="personalRatingsScoreBadge">' + this.buildScoreText(item.Score) + '</span>'
-                + '        <div class="personalRatingsBadgeStack">'
+                + '<a class="personalRatingsCardLink personalRatingsCardLink-poster" href="' + detailUrl + '" data-item-id="' + itemId + '">'
+                + '  <article class="card personalRatingsMediaCard card-hoverable card-withuserdata">'
+                + '    <div class="cardBox cardBox-bottompadded">'
+                + '      <div class="cardScalable">'
+                + '        <div class="cardPadder personalRatingsCardPadder"></div>'
+                + '        <div class="personalRatingsPoster">'
+                + '          <div class="personalRatingsPosterImage" style="background-image:url(\'' + imageUrl + '\')"></div>'
+                + '          <div class="personalRatingsPosterOverlay"></div>'
+                + '          <div class="personalRatingsPosterBadges">'
+                + '            <span class="personalRatingsScoreBadge">' + this.buildScoreText(item.Score) + '</span>'
+                + '            <div class="personalRatingsBadgeStack">'
                 + (item.IsPendingDelete ? '<span class="personalRatingsStateBadge personalRatingsStateBadge-subtle">待删除</span>' : '')
+                + '            </div>'
+                + '          </div>'
                 + '        </div>'
                 + '      </div>'
-                + '    </div>'
-                + '    <div class="personalRatingsCardBody">'
-                + '      <div class="personalRatingsCardBodyTop">'
-                + '        <div class="personalRatingsCardTitleRow">'
-                + '          <h3 class="personalRatingsCardTitle">' + itemName + '</h3>'
-                + '          <div class="personalRatingsListBadges">' + listBadges.join('') + '</div>'
-                + '        </div>'
-                + '        <div class="personalRatingsCardMeta">' + this.escapeHtml(metaParts.join(' · ') || '未标注类型') + '</div>'
-                + '      </div>'
-                + '      <div class="personalRatingsCardBodyBottom">'
-                + '        <div class="personalRatingsCardSubMeta">' + this.escapeHtml(secondaryParts.join(' · ') || '打开详情页继续操作') + '</div>'
-                + '        <div class="personalRatingsCardTags">' + this.renderTagChips(visibleTags, overflowTagCount) + '</div>'
-                + '      </div>'
+                + '      <div class="cardText cardText-first personalRatingsCardTextPrimary">' + itemName + '</div>'
+                + '      <div class="cardText cardText-secondary personalRatingsCardTextSecondary">' + this.escapeHtml(metaParts.join(' · ') || '未标注类型') + '</div>'
+                + '      <div class="personalRatingsCardSubMeta personalRatingsCardSubMeta-poster">' + this.escapeHtml(secondaryParts.join(' · ') || '打开详情页继续操作') + '</div>'
+                + '      <div class="personalRatingsCardTags personalRatingsCardTags-poster">' + this.renderTagChips(visibleTags, overflowTagCount) + '</div>'
                 + '    </div>'
                 + '  </article>'
                 + '</a>';
@@ -146,7 +160,9 @@
             }
 
             if (manageModeHint) {
-                manageModeHint.textContent = '前台页先专注浏览与快速筛选，批量操作仍保留在评分后台。';
+                manageModeHint.textContent = state.search || state.tagIds.length || state.playedFilter !== 'all' || state.mediaType !== 'all'
+                    ? '当前结果已叠加个人评分、标签与播放状态筛选。'
+                    : '这里沿用 Jellyfin 媒体库的浏览方式，仅轻量叠加个人评分维度。';
             }
         },
 

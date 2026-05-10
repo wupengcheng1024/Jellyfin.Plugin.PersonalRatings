@@ -131,6 +131,17 @@ public sealed class WebAssetsControllerTests
         Assert.Contains("openPluginAdminRoute", content, StringComparison.Ordinal);
         Assert.Contains("restoreHeaderTabsMarkupIfNeeded(false);", content, StringComparison.Ordinal);
         Assert.Contains("browse-page.css?v=", content, StringComparison.Ordinal);
+        Assert.Contains("page libraryPage collectionEditorPage type-interior", content, StringComparison.Ordinal);
+        Assert.Contains("pageTabContent is-active personalRatingsBrowseTabContent", content, StringComparison.Ordinal);
+        Assert.Contains("btnSelectView autoSize paper-icon-button-light", content, StringComparison.Ordinal);
+        Assert.Contains("btnSort autoSize paper-icon-button-light", content, StringComparison.Ordinal);
+        Assert.Contains("btnFilter autoSize paper-icon-button-light", content, StringComparison.Ordinal);
+        Assert.Contains("btnFilter-wrapper personalRatingsBrowseFilterButtonWrap", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsBrowseFilterTray", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsBrowsePanelSection-search", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsBrowsePanelSection-sort", content, StringComparison.Ordinal);
+        Assert.Contains("personalRatingsBrowsePanelSection-filterGrid", content, StringComparison.Ordinal);
+        Assert.Contains("restorePageScroll(page);", content, StringComparison.Ordinal);
         Assert.Contains(".skinHeader .headerTabs .emby-tabs-slider", content, StringComparison.Ordinal);
         Assert.Contains("insertAdjacentElement('afterend', navButton);", content, StringComparison.Ordinal);
         Assert.Contains("cleanupDuplicateNavEntries", content, StringComparison.Ordinal);
@@ -180,11 +191,18 @@ public sealed class WebAssetsControllerTests
         Assert.Contains("visibility: hidden !important;", content, StringComparison.Ordinal);
         Assert.Contains("pointer-events: none !important;", content, StringComparison.Ordinal);
         Assert.Contains("display: flex !important;", content, StringComparison.Ordinal);
-        Assert.Contains(".personalRatingsBrowseResults.is-list .personalRatingsCardTitleRow", content, StringComparison.Ordinal);
-        Assert.Contains(".personalRatingsBrowseResults.is-list .personalRatingsCardBodyTop", content, StringComparison.Ordinal);
-        Assert.Contains(".personalRatingsBrowseResults.is-list .personalRatingsPoster", content, StringComparison.Ordinal);
-        Assert.Contains("width: 120px;", content, StringComparison.Ordinal);
-        Assert.Contains("justify-content: flex-start;", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseCommandBar", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseFilterButtonWrap", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseFilterSheet", content, StringComparison.Ordinal);
+        Assert.Contains("position: absolute;", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseFilterTray[hidden]", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowsePanelSection[hidden]", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseTagMatchField[hidden]", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsBrowseResults", content, StringComparison.Ordinal);
+        Assert.Contains("display: block !important;", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsMediaCard .cardBox", content, StringComparison.Ordinal);
+        Assert.Contains(".personalRatingsListItem", content, StringComparison.Ordinal);
+        Assert.Contains("grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));", content, StringComparison.Ordinal);
     }
 
     [Fact]

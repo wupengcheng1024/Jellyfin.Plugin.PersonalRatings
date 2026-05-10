@@ -20,7 +20,7 @@
 
     var auditRoute = 'configurationpage?name=PersonalRatingsAuditPage';
     var backendRoute = 'configurationpage?name=PersonalRatingsManagePage';
-    var assetVersion = '20260510-browse-admin-hotfix';
+    var assetVersion = '20260510-native-browse-v5';
     var navClassName = 'personalRatingsNavTab';
     var pageClassName = 'personalRatingsBrowsePage';
     var pageId = 'personalRatingsBrowsePage';
@@ -626,7 +626,7 @@
 
         page = document.createElement('section');
         page.id = pageId;
-        page.className = 'page type-interior ' + pageClassName;
+        page.className = 'page libraryPage collectionEditorPage type-interior ' + pageClassName;
         page.setAttribute('aria-label', '打分库');
         page.innerHTML = buildPageMarkup();
         bindPageEvents(page);
@@ -637,24 +637,55 @@
 
     function buildPageMarkup() {
         return [
-            '<div class="personalRatingsBrowseLayout">',
-            '  <section class="personalRatingsBrowseHeader">',
-            '    <div class="personalRatingsBrowseHeaderText">',
-            '      <p class="personalRatingsBrowseEyebrow">Jellyfin.PersonalRatings</p>',
-            '      <h1>打分库</h1>',
-            '      <p>按评分、标签和播放状态浏览个人记录。点击卡片后仍会回到 Jellyfin 原始详情页。</p>',
+            '<div class="pageTabContent is-active personalRatingsBrowseTabContent">',
+            '  <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x personalRatingsBrowseCommandBar">',
+            '    <div class="paging personalRatingsBrowsePaging">',
+            '      <div class="personalRatingsBrowseCollectionLabel">打分库</div>',
+            '      <div class="personalRatingsBrowseSummaryText">正在准备打分库...</div>',
             '      <div class="personalRatingsBrowseModeHint"></div>',
             '    </div>',
-            '    <div class="personalRatingsBrowseHeaderActions">',
-            '      <button type="button" class="button-flat personalRatingsBrowseViewButton is-active" data-view-mode="poster">海报</button>',
-            '      <button type="button" class="button-flat personalRatingsBrowseViewButton" data-view-mode="list">列表</button>',
-            '      <button type="button" class="button-flat personalRatingsOpenBackendButton">评分后台</button>',
-            '      <button type="button" class="button-flat personalRatingsOpenAuditButton" hidden="hidden">删除审计</button>',
+            '    <div class="personalRatingsBrowseCommandButtons">',
+            '      <button type="button" is="paper-icon-button-light" class="btnSearch autoSize paper-icon-button-light personalRatingsBrowseToolbarButton personalRatingsBrowseModeButton" data-panel-mode="search" title="搜索"><span class="material-icons search" aria-hidden="true"></span></button>',
+            '      <button type="button" is="paper-icon-button-light" class="btnSelectView autoSize paper-icon-button-light personalRatingsBrowseToolbarButton personalRatingsBrowseViewButton is-active" data-view-mode="poster" title="海报视图"><span class="material-icons view_module" aria-hidden="true"></span></button>',
+            '      <button type="button" is="paper-icon-button-light" class="btnSelectView autoSize paper-icon-button-light personalRatingsBrowseToolbarButton personalRatingsBrowseViewButton" data-view-mode="list" title="列表视图"><span class="material-icons view_agenda" aria-hidden="true"></span></button>',
+            '      <button type="button" is="paper-icon-button-light" class="btnSort autoSize paper-icon-button-light personalRatingsBrowseToolbarButton personalRatingsBrowseModeButton" data-panel-mode="sort" title="排序"><span class="material-icons sort_by_alpha" aria-hidden="true"></span></button>',
+            '      <div class="btnFilter-wrapper personalRatingsBrowseFilterButtonWrap">',
+            '        <button type="button" is="paper-icon-button-light" class="btnFilter autoSize paper-icon-button-light personalRatingsBrowseToolbarButton personalRatingsBrowseModeButton" data-panel-mode="filter" title="筛选"><span class="material-icons filter_list" aria-hidden="true"></span></button>',
+            '      </div>',
+            '      <button type="button" class="button-flat personalRatingsBrowseUtilityButton personalRatingsOpenBackendButton">评分后台</button>',
+            '      <button type="button" class="button-flat personalRatingsBrowseUtilityButton personalRatingsOpenAuditButton" hidden="hidden">删除审计</button>',
             '    </div>',
-            '  </section>',
-            '  <section class="personalRatingsBrowsePanel personalRatingsBrowsePanel-toolbar">',
-            '    <div class="personalRatingsBrowseToolbar">',
-            '      <div class="personalRatingsBrowseToolbarGroup">',
+            '  </div>',
+            '  <div class="itemsContainer padded-left padded-right personalRatingsBrowseFilterTray" hidden="hidden">',
+            '    <section class="personalRatingsBrowseFilterSheet">',
+            '      <div class="personalRatingsBrowseFilterSheetHeader">',
+            '        <div>',
+            '          <div class="personalRatingsBrowseFilterSheetTitle">筛选与搜索</div>',
+            '          <div class="personalRatingsBrowseFilterSheetSummary">可按评分、标签、播放状态和类型缩小结果范围。</div>',
+            '        </div>',
+            '        <button type="button" class="button-flat personalRatingsBrowseSheetCloseButton">关闭</button>',
+            '      </div>',
+            '      <form class="personalRatingsBrowseSearchForm personalRatingsBrowseFilterRow personalRatingsBrowsePanelSection personalRatingsBrowsePanelSection-search">',
+            '        <label class="personalRatingsBrowseField personalRatingsBrowseField-search">',
+            '          <span>搜索</span>',
+            '          <input is="emby-input" type="text" class="txtBrowseSearch" placeholder="片名 / 剧名 / 条目名" />',
+            '        </label>',
+            '        <button type="submit" class="raised button-submit">查询</button>',
+            '        <button type="button" class="button-flat personalRatingsBrowseClearButton">清空搜索</button>',
+            '      </form>',
+            '      <div class="personalRatingsBrowseFilterRow personalRatingsBrowsePanelSection personalRatingsBrowsePanelSection-sort">',
+            '        <label class="personalRatingsBrowseField personalRatingsBrowseField-compact personalRatingsBrowseField-sortOnly">',
+            '          <span>排序</span>',
+            '          <select is="emby-select" class="selectBrowseSort">',
+            '            <option value="ratedAt:desc">最近评分</option>',
+            '            <option value="updatedAt:desc">最近更新</option>',
+            '            <option value="lastPlayedAt:desc">最近播放</option>',
+            '            <option value="name:asc">名称 A-Z</option>',
+            '            <option value="year:desc">年份新到旧</option>',
+            '          </select>',
+            '        </label>',
+            '      </div>',
+            '      <div class="personalRatingsBrowseFilterRow personalRatingsBrowseFilterRow-grid personalRatingsBrowsePanelSection personalRatingsBrowsePanelSection-filterGrid">',
             '        <label class="personalRatingsBrowseField personalRatingsBrowseField-compact">',
             '          <span>评分</span>',
             '          <select is="emby-select" class="selectBrowseScore">',
@@ -687,54 +718,37 @@
             '            <option value="Video">视频</option>',
             '          </select>',
             '        </label>',
-            '        <label class="personalRatingsBrowseField personalRatingsBrowseField-compact">',
-            '          <span>排序</span>',
-            '          <select is="emby-select" class="selectBrowseSort">',
-            '            <option value="ratedAt:desc">最近评分</option>',
-            '            <option value="updatedAt:desc">最近更新</option>',
-            '            <option value="lastPlayedAt:desc">最近播放</option>',
-            '            <option value="name:asc">名称 A-Z</option>',
-            '            <option value="year:desc">年份新到旧</option>',
+            '      </div>',
+            '      <div class="personalRatingsBrowseFilterRow personalRatingsBrowseFilterRow-tags personalRatingsBrowsePanelSection personalRatingsBrowsePanelSection-filterTags">',
+            '        <div class="personalRatingsBrowseField personalRatingsBrowseField-tags">',
+            '          <div class="personalRatingsBrowseTagHeader">标签</div>',
+            '          <div class="personalRatingsBrowseTagFilters"></div>',
+            '        </div>',
+            '        <label class="personalRatingsBrowseField personalRatingsBrowseTagMatchField" hidden="hidden">',
+            '          <span>标签匹配</span>',
+            '          <select is="emby-select" class="selectBrowseTagMatch">',
+            '            <option value="any">任意命中</option>',
+            '            <option value="all">全部命中</option>',
             '          </select>',
             '        </label>',
             '      </div>',
-            '      <form class="personalRatingsBrowseSearchForm">',
-            '        <label class="personalRatingsBrowseField personalRatingsBrowseField-search">',
-            '          <span>搜索</span>',
-            '          <input is="emby-input" type="text" class="txtBrowseSearch" placeholder="片名 / 剧名 / 条目名" />',
-            '        </label>',
-            '        <button type="submit" class="raised button-submit">查询</button>',
-            '        <button type="button" class="button-flat personalRatingsBrowseClearButton">清空</button>',
-            '      </form>',
-            '    </div>',
-            '    <div class="personalRatingsBrowseTagRow">',
-            '      <div class="personalRatingsBrowseField personalRatingsBrowseField-tags">',
-            '        <div class="personalRatingsBrowseTagHeader">标签</div>',
-            '        <div class="personalRatingsBrowseTagFilters"></div>',
+            '      <div class="personalRatingsBrowseFilterActions personalRatingsBrowsePanelSection personalRatingsBrowsePanelSection-filterActions">',
+            '        <button type="button" class="button-flat personalRatingsBrowseClearFiltersButton">清空全部筛选</button>',
             '      </div>',
-            '      <label class="personalRatingsBrowseField personalRatingsBrowseTagMatchField" hidden="hidden">',
-            '        <span>标签匹配</span>',
-            '        <select is="emby-select" class="selectBrowseTagMatch">',
-            '          <option value="any">任意命中</option>',
-            '          <option value="all">全部命中</option>',
-            '        </select>',
-            '      </label>',
-            '    </div>',
-            '  </section>',
-            '  <section class="personalRatingsBrowsePanel">',
-            '    <div class="personalRatingsBrowseStatus">',
-            '      <div class="personalRatingsBrowseSummaryText">正在准备打分库...</div>',
-            '      <div class="personalRatingsBrowseStatusText" aria-live="polite"></div>',
-            '    </div>',
-            '    <div class="personalRatingsBrowseResults is-poster">',
-            '      <div class="personalRatingsBrowseCards"></div>',
-            '    </div>',
-            '    <div class="personalRatingsBrowsePagination">',
-            '      <button type="button" class="button-flat personalRatingsBrowsePrevButton">上一页</button>',
-            '      <div class="personalRatingsBrowsePageText">第 1 页</div>',
-            '      <button type="button" class="button-flat personalRatingsBrowseNextButton">下一页</button>',
-            '    </div>',
-            '  </section>',
+            '    </section>',
+            '  </div>',
+            '  <div class="itemsContainer padded-left padded-right personalRatingsBrowseActiveBar">',
+            '    <div class="personalRatingsBrowseStatusText" aria-live="polite"></div>',
+            '    <div class="personalRatingsBrowseActiveFilters"></div>',
+            '  </div>',
+            '  <div class="itemsContainer padded-left padded-right personalRatingsBrowseResults">',
+            '    <div class="personalRatingsBrowseCards"></div>',
+            '  </div>',
+            '  <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x personalRatingsBrowseFooterBar">',
+            '    <button type="button" class="button-flat personalRatingsBrowsePrevButton">上一页</button>',
+            '    <div class="paging personalRatingsBrowsePageText">第 1 / 1 页</div>',
+            '    <button type="button" class="button-flat personalRatingsBrowseNextButton">下一页</button>',
+            '  </div>',
             '</div>'
         ].join('');
     }
@@ -755,15 +769,35 @@
             },
             onViewMode: function (viewMode) {
                 window.PersonalRatingsBrowseState.setViewMode(state, viewMode);
-                state.needsReload = true;
                 syncHeaderActions(page);
-                safeLoad(page);
+                if (state.lastResult) {
+                    window.PersonalRatingsBrowseRenderer.renderResults(page, state);
+                    restorePageScroll(page);
+                } else {
+                    safeLoad(page);
+                }
             },
             onToggleTag: function (tagId) {
                 window.PersonalRatingsBrowseState.toggleTagFilter(state, tagId);
                 state.needsReload = true;
                 window.PersonalRatingsBrowseFilters.renderTagFilters(page, state);
                 safeLoad(page);
+            },
+            onOpenPanel: function (mode) {
+                window.PersonalRatingsBrowseState.setActivePanelMode(state, state.activePanelMode === mode ? null : mode);
+                syncHeaderActions(page);
+                if (state.activePanelMode === 'search') {
+                    window.setTimeout(function () {
+                        var input = page.querySelector('.txtBrowseSearch');
+                        if (input) {
+                            input.focus();
+                        }
+                    }, 0);
+                }
+            },
+            onClosePanel: function () {
+                window.PersonalRatingsBrowseState.setActivePanelMode(state, null);
+                syncHeaderActions(page);
             },
             onOpenBackend: function () {
                 openPluginAdminRoute(backendRoute);
@@ -799,6 +833,21 @@
             onSearch: function (value) {
                 window.PersonalRatingsBrowseState.setSearch(state, value);
                 state.needsReload = true;
+                safeLoad(page);
+            },
+            onClearFilters: function () {
+                window.PersonalRatingsBrowseState.setScoreFilter(state, 'rated');
+                window.PersonalRatingsBrowseState.setPlayedFilter(state, 'all');
+                window.PersonalRatingsBrowseState.setMediaType(state, 'all');
+                window.PersonalRatingsBrowseState.setSortValue(state, 'ratedAt:desc');
+                window.PersonalRatingsBrowseState.clearSearch(state);
+                state.tagIds = [];
+                window.PersonalRatingsBrowseState.setTagMatchMode(state, 'any');
+                state.pageNumber = 1;
+                state.needsReload = true;
+                window.PersonalRatingsBrowseState.persist(state);
+                window.PersonalRatingsBrowseFilters.renderTagFilters(page, state);
+                syncHeaderActions(page);
                 safeLoad(page);
             }
         });
@@ -847,6 +896,7 @@
     function showPage(page) {
         page.classList.add('is-active');
         page.setAttribute('aria-hidden', 'false');
+        restorePageScroll(page);
     }
 
     function destroyPage() {
@@ -855,6 +905,7 @@
             return;
         }
 
+        window.PersonalRatingsBrowseState.setScrollTop(state, page.scrollTop || 0);
         state.requestVersion += 1;
         state.isLoading = false;
         state.isTagLoading = false;
@@ -873,6 +924,7 @@
         page.querySelector('.personalRatingsBrowsePrevButton').disabled = true;
         page.querySelector('.personalRatingsBrowseNextButton').disabled = true;
         window.PersonalRatingsBrowseRenderer.setStatus(page, message, type);
+        syncHeaderActions(page);
     }
 
     function safeLoad(page) {
@@ -898,10 +950,20 @@
             window.PersonalRatingsBrowseRenderer.renderResults(page, state);
             window.PersonalRatingsBrowseRenderer.setStatus(page, '', null);
             syncHeaderActions(page);
+            restorePageScroll(page);
             return;
         }
 
-        loadResults(page);
+        if (state.lastResult && !state.lastLoadFailed) {
+            window.PersonalRatingsBrowseRenderer.renderResults(page, state);
+            window.PersonalRatingsBrowseRenderer.setStatus(page, '正在同步最新结果...', 'loading');
+            syncHeaderActions(page);
+            restorePageScroll(page);
+            loadResults(page, true);
+            return;
+        }
+
+        loadResults(page, false);
     }
 
     function loadTags(page) {
@@ -920,7 +982,7 @@
         });
     }
 
-    function loadResults(page) {
+    function loadResults(page, preserveVisibleState) {
         if (!isBrowseRoute()) {
             return;
         }
@@ -928,7 +990,9 @@
         state.isLoading = true;
         state.requestVersion += 1;
         var requestVersion = state.requestVersion;
-        renderMessageState(page, '正在加载打分库...', '正在加载打分库...', 'loading');
+        if (!preserveVisibleState) {
+            renderMessageState(page, '正在加载打分库...', '正在加载打分库...', 'loading');
+        }
 
         window.PersonalRatingsBrowseApi.queryRatings(window.PersonalRatingsBrowseState.buildQueryRequest(state)).then(function (result) {
             if (requestVersion !== state.requestVersion) {
@@ -941,6 +1005,7 @@
             window.PersonalRatingsBrowseRenderer.renderResults(page, state);
             window.PersonalRatingsBrowseRenderer.setStatus(page, '打分库已刷新。', 'success');
             syncHeaderActions(page);
+            restorePageScroll(page);
         }).catch(function () {
             if (requestVersion !== state.requestVersion) {
                 return;
@@ -957,10 +1022,21 @@
             window.PersonalRatingsBrowseRenderer.renderResults(page, state);
             window.PersonalRatingsBrowseRenderer.setStatus(page, '加载打分库失败。', 'error');
             syncHeaderActions(page);
+            restorePageScroll(page);
         }).finally(function () {
             if (requestVersion === state.requestVersion) {
                 state.isLoading = false;
             }
+        });
+    }
+
+    function restorePageScroll(page) {
+        if (!page) {
+            return;
+        }
+
+        window.requestAnimationFrame(function () {
+            page.scrollTop = state.scrollTop || 0;
         });
     }
 })();
