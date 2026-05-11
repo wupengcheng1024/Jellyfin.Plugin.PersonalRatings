@@ -127,8 +127,7 @@
             }
 
             var chips = tags.map(function (tag) {
-                var background = window.PersonalRatingsBrowseRenderer.hexToTransparent(tag.Color || '#d88b2f', 0.16);
-                return '<span class="personalRatingsCardTag" style="background:' + background + '; border-color:' + window.PersonalRatingsBrowseRenderer.escapeHtml(tag.Color || '#d88b2f') + ';">'
+                return '<span class="personalRatingsCardTag" style="' + window.PersonalRatingsBrowseRenderer.buildTagToneStyle(tag.Color || '#d88b2f', 0.14, 0.26) + '">'
                     + window.PersonalRatingsBrowseRenderer.escapeHtml(tag.Name)
                     + '</span>';
             });
@@ -224,6 +223,14 @@
             var green = parseInt(value.substring(2, 4), 16);
             var blue = parseInt(value.substring(4, 6), 16);
             return 'rgba(' + red + ', ' + green + ', ' + blue + ', ' + alpha + ')';
+        },
+
+        buildTagToneStyle: function (hex, backgroundAlpha, borderAlpha) {
+            var color = this.escapeHtml(hex || '#d88b2f');
+            return '--pr-tag-accent:' + color + ';'
+                + '--pr-tag-text:' + color + ';'
+                + '--pr-tag-bg:' + this.hexToTransparent(hex || '#d88b2f', backgroundAlpha || 0.14) + ';'
+                + '--pr-tag-border:' + this.hexToTransparent(hex || '#d88b2f', borderAlpha || 0.28) + ';';
         }
     };
 })();

@@ -131,11 +131,7 @@
 
             container.innerHTML = state.tags.map(function (tag) {
                 var isActive = state.tagIds.indexOf(tag.Id) >= 0;
-                var color = window.PersonalRatingsBrowseRenderer.escapeHtml(tag.Color || '#d88b2f');
-                var style = 'border-color:' + color + ';';
-                if (isActive) {
-                    style += ' background:' + window.PersonalRatingsBrowseRenderer.hexToTransparent(tag.Color || '#d88b2f', 0.18) + ';';
-                }
+                var style = window.PersonalRatingsBrowseRenderer.buildTagToneStyle(tag.Color || '#d88b2f', 0.14, 0.3);
 
                 return ''
                     + '<button type="button" class="button-flat personalRatingsBrowseTagChip'

@@ -217,10 +217,9 @@
                 empty.hidden = true;
                 list.innerHTML = state.availableTags.map(function (tag) {
                     var isActive = selectedTagIds.indexOf(tag.Id) >= 0;
-                    var background = ManagePage.hexToTransparent(tag.Color || '#d88b2f', 0.18);
                     return '<button is="emby-button" type="button" class="button-flat personalRatingsTag personalRatingsChipButton personalRatingsBatchTagButton'
                         + (isActive ? ' is-active' : '')
-                        + '" data-batch-tag-id="' + tag.Id + '" style="background:' + background + '; border:1px solid ' + ManagePage.escapeHtml(tag.Color || '#d88b2f') + ';">'
+                        + '" data-batch-tag-id="' + tag.Id + '" style="' + ManagePage.buildTagToneStyle(tag.Color || '#d88b2f', 0.14, 0.3) + '">'
                         + ManagePage.escapeHtml(tag.Name)
                         + '</button>';
                 }).join('');
@@ -281,12 +280,9 @@
                 empty.hidden = true;
                 list.innerHTML = state.availableTags.map(function (tag) {
                     var isActive = selectedTagIds.indexOf(tag.Id) >= 0;
-                    var background = isActive
-                        ? ManagePage.hexToTransparent(tag.Color || '#d88b2f', 0.18)
-                        : 'rgba(255, 255, 255, 0.08)';
                     return '<button is="emby-button" type="button" class="button-flat personalRatingsTag personalRatingsChipButton personalRatingsFilterTagButton'
                         + (isActive ? ' is-active' : '')
-                        + '" data-filter-tag-id="' + tag.Id + '" style="background:' + background + '; border:1px solid ' + ManagePage.escapeHtml(tag.Color || '#d88b2f') + ';">'
+                        + '" data-filter-tag-id="' + tag.Id + '" style="' + ManagePage.buildTagToneStyle(tag.Color || '#d88b2f', 0.14, 0.3) + '">'
                         + ManagePage.escapeHtml(tag.Name)
                         + '</button>';
                 }).join('');
@@ -325,8 +321,7 @@
             var visibleTags = safeTags.slice(0, 3);
             var overflowTagCount = Math.max(0, safeTags.length - visibleTags.length);
             var renderedTags = visibleTags.map(function (tag) {
-                var background = ManagePage.hexToTransparent(tag.Color || '#d88b2f', 0.18);
-                return '<span class="personalRatingsTag" style="background:' + background + '; border:1px solid ' + ManagePage.escapeHtml(tag.Color || '#d88b2f') + ';">'
+                return '<span class="personalRatingsTag personalRatingsDisplayTag" style="' + ManagePage.buildTagToneStyle(tag.Color || '#d88b2f', 0.14, 0.26) + '">'
                     + ManagePage.escapeHtml(tag.Name)
                     + '</span>';
             });
@@ -1182,6 +1177,14 @@
             var green = parseInt(value.substring(2, 4), 16);
             var blue = parseInt(value.substring(4, 6), 16);
             return 'rgba(' + red + ', ' + green + ', ' + blue + ', ' + alpha + ')';
+        },
+
+        buildTagToneStyle: function (hex, backgroundAlpha, borderAlpha) {
+            var color = this.escapeHtml(hex || '#d88b2f');
+            return '--pr-tag-accent:' + color + ';'
+                + '--pr-tag-text:' + color + ';'
+                + '--pr-tag-bg:' + this.hexToTransparent(hex || '#d88b2f', backgroundAlpha || 0.14) + ';'
+                + '--pr-tag-border:' + this.hexToTransparent(hex || '#d88b2f', borderAlpha || 0.28) + ';';
         },
 
         buildActiveFilterBadges: function (selectedTagNames, tagMatchMode, otherActiveFilters) {

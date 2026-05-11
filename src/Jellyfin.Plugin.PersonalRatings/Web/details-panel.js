@@ -66,20 +66,21 @@
                 '.personalRatingsInlineTags {',
                 '  display: flex;',
                 '  flex-wrap: wrap;',
-                '  gap: 4px;',
+                '  gap: 6px;',
                 '  min-width: 0;',
                 '}',
                 '.personalRatingsInlineTag {',
                 '  display: inline-flex;',
                 '  align-items: center;',
-                '  min-height: 21px;',
-                '  padding: 0 8px;',
-                '  border-radius: 999px;',
-                '  border: 1px solid rgba(255, 255, 255, 0.12);',
-                '  background: rgba(255, 255, 255, 0.05);',
-                '  color: rgba(255, 255, 255, 0.78);',
+                '  min-height: 20px;',
+                '  padding: 0 7px;',
+                '  border-radius: 6px;',
+                '  border: 1px solid var(--pr-tag-border, rgba(255, 255, 255, 0.1));',
+                '  background: var(--pr-tag-bg, rgba(255, 255, 255, 0.045));',
+                '  color: var(--pr-tag-text, rgba(255, 255, 255, 0.76));',
                 '  font-size: 11px;',
                 '  line-height: 1;',
+                '  font-weight: 600;',
                 '}',
                 '.personalRatingsInlineTag-empty {',
                 '  color: rgba(255, 255, 255, 0.52);',
@@ -198,9 +199,9 @@
                 '}',
                 '.personalRatingsTagCreateInput {',
                 '  min-width: 132px;',
-                '  min-height: 30px;',
+                '  min-height: 28px;',
                 '  padding: 0 10px;',
-                '  border-radius: 999px;',
+                '  border-radius: 8px;',
                 '  border: 1px solid rgba(255, 255, 255, 0.12);',
                 '  background: rgba(255, 255, 255, 0.05);',
                 '  color: rgba(255, 255, 255, 0.92);',
@@ -218,12 +219,12 @@
                 '  display: inline-flex;',
                 '  align-items: center;',
                 '  justify-content: center;',
-                '  width: 30px;',
-                '  height: 30px;',
-                '  min-width: 30px !important;',
-                '  min-height: 30px !important;',
+                '  width: 28px;',
+                '  height: 28px;',
+                '  min-width: 28px !important;',
+                '  min-height: 28px !important;',
                 '  padding: 0 !important;',
-                '  border-radius: 999px !important;',
+                '  border-radius: 8px !important;',
                 '  border-color: rgba(0, 164, 220, 0.28) !important;',
                 '  background: rgba(0, 164, 220, 0.12) !important;',
                 '  color: #dff6ff !important;',
@@ -254,24 +255,33 @@
                 '.personalRatingsTagPicker {',
                 '  display: flex;',
                 '  flex-wrap: wrap;',
-                '  gap: 8px;',
+                '  gap: 6px;',
                 '  margin-top: 8px;',
                 '}',
                 '.personalRatingsTagButton {',
-                '  min-height: 30px;',
-                '  border-radius: 999px !important;',
-                '  padding: 0 10px !important;',
+                '  min-height: 24px;',
+                '  border-radius: 6px !important;',
+                '  padding: 0 8px !important;',
                 '  font-weight: 600;',
-                '  color: rgba(255, 255, 255, 0.68) !important;',
-                '  background: rgba(255, 255, 255, 0.03) !important;',
+                '  font-size: 11px;',
+                '  color: rgba(255, 255, 255, 0.72) !important;',
+                '  border: 1px solid rgba(255, 255, 255, 0.08) !important;',
+                '  background: rgba(255, 255, 255, 0.045) !important;',
+                '  box-shadow: none !important;',
+                '}',
+                '.personalRatingsTagButton:hover {',
+                '  background: rgba(255, 255, 255, 0.075) !important;',
+                '  border-color: rgba(255, 255, 255, 0.12) !important;',
                 '}',
                 '.personalRatingsTagButton.is-active {',
-                '  color: #fffaf2 !important;',
-                '  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.03);',
+                '  color: var(--pr-tag-accent, #7dc9ff) !important;',
+                '  border-color: var(--pr-tag-border, rgba(125, 201, 255, 0.34)) !important;',
+                '  background: var(--pr-tag-bg, rgba(125, 201, 255, 0.12)) !important;',
+                '  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);',
                 '}',
                 '.personalRatingsTagHint {',
                 '  color: rgba(255, 255, 255, 0.58);',
-                '  font-size: 12px;',
+                '  font-size: 11px;',
                 '}',
                 '.personalRatingsScoreButton.is-active {',
                 '  background: rgba(229, 139, 47, 0.22);',
@@ -618,11 +628,7 @@
 
             container.innerHTML = availableTags.map(function (tag) {
                 var isActive = !!selectedTagIds[tag.Id];
-                var color = window.PersonalRatingsDetailPanel.escapeHtml(tag.Color || '#d88b2f');
-                var style = 'border-color:' + color + ';';
-                if (isActive) {
-                    style += ' background:' + window.PersonalRatingsDetailPanel.hexToTransparent(tag.Color || '#d88b2f', 0.26) + '; color:#fffaf2;';
-                }
+                var style = window.PersonalRatingsDetailPanel.buildTagToneStyle(tag.Color || '#d88b2f', 0.16, 0.34);
 
                 return '<button type="button" class="button-flat personalRatingsTagButton'
                     + (isActive ? ' is-active' : '')
@@ -703,9 +709,8 @@
             var visibleTags = selectedTags.slice(0, 2);
             var overflowCount = Math.max(0, selectedTags.length - visibleTags.length);
             tagsNode.innerHTML = visibleTags.map(function (tag) {
-                var color = window.PersonalRatingsDetailPanel.escapeHtml(tag.Color || '#d88b2f');
-                var background = window.PersonalRatingsDetailPanel.hexToTransparent(tag.Color || '#d88b2f', 0.18);
-                return '<span class="personalRatingsInlineTag" style="border-color:' + color + '; background:' + background + ';">'
+                var style = window.PersonalRatingsDetailPanel.buildTagToneStyle(tag.Color || '#d88b2f', 0.14, 0.28);
+                return '<span class="personalRatingsInlineTag" style="' + style + '">'
                     + window.PersonalRatingsDetailPanel.escapeHtml(tag.Name)
                     + '</span>';
             }).join('') + (overflowCount > 0
@@ -876,6 +881,14 @@
             var green = parseInt(value.substring(2, 4), 16);
             var blue = parseInt(value.substring(4, 6), 16);
             return 'rgba(' + red + ', ' + green + ', ' + blue + ', ' + alpha + ')';
+        },
+
+        buildTagToneStyle: function (hex, backgroundAlpha, borderAlpha) {
+            var color = this.escapeHtml(hex || '#d88b2f');
+            return '--pr-tag-accent:' + color + ';'
+                + '--pr-tag-text:' + color + ';'
+                + '--pr-tag-bg:' + this.hexToTransparent(hex || '#d88b2f', backgroundAlpha || 0.16) + ';'
+                + '--pr-tag-border:' + this.hexToTransparent(hex || '#d88b2f', borderAlpha || 0.32) + ';';
         }
     };
 })();
