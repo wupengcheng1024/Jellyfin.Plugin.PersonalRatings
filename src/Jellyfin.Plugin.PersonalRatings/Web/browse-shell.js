@@ -27,6 +27,9 @@
     var pendingNativeTabTarget = null;
     var nativeHomeRoute = 'home.html';
     var nativeRouteBrowseQueryKey = 'personalratings';
+    var posterCardGap = 16;
+    var posterCardMinWidth = 160;
+    var posterRowsPerPage = 4;
     var route = 'personalratings';
     var stylesheetId = 'personalRatingsBrowseStylesheet';
     var headerObserver = null;
@@ -121,6 +124,7 @@
 
         showPage(page);
         updatePageOffset(page);
+        updateResponsivePageSize(page);
 
         if (!state.featuresLoaded) {
             renderMessageState(page, '正在准备打分库...', '正在准备打分库...', 'loading');
@@ -772,7 +776,9 @@
             onViewMode: function (viewMode) {
                 window.PersonalRatingsBrowseState.setViewMode(state, viewMode);
                 syncHeaderActions(page);
-                if (state.lastResult) {
+                if (updateResponsivePageSize(page)) {
+                    safeLoad(page);
+                } else if (state.lastResult) {
                     window.PersonalRatingsBrowseRenderer.renderResults(page, state);
                     restorePageScroll(page);
                 } else {
@@ -879,6 +885,9 @@
         var page = document.getElementById(pageId);
         if (page) {
             updatePageOffset(page);
+            if (updateResponsivePageSize(page)) {
+                safeLoad(page);
+            }
         }
     }
 
@@ -1030,6 +1039,44 @@
                 state.isLoading = false;
             }
         });
+    }
+
+    function updateResponsivePageSize(page) {
+        if (!page) {
+            return false;
+        }
+
+        var desiredPageSize = calculateResponsivePageSize(page);
+        if (!desiredPageSize || desiredPageSize === state.pageSize) {
+            return false;
+        }
+
+        var firstVisibleIndex = Math.max(0, (Math.max(state.pageNumber, 1) - 1) * Math.max(state.pageSize, 1));
+        state.pageSize = desiredPageSize;
+        state.pageNumber = Math.max(1, Math.floor(firstVisibleIndex / desiredPageSize) + 1);
+        state.needsReload = true;
+        return true;
+    }
+
+    function calculateResponsivePageSize(page) {
+        if (state.viewMode === 'list') {
+            return 20;
+        }
+
+        var results = page.querySelector('.personalRatingsBrowseResults');
+        if (!results) {
+            return state.pageSize;
+        }
+
+        var styles = window.getComputedStyle(results);
+        var horizontalPadding = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+        var contentWidth = results.clientWidth - horizontalPadding;
+        if (!(contentWidth > 0)) {
+            return state.pageSize;
+        }
+
+        var columns = Math.max(1, Math.floor((contentWidth + posterCardGap) / (posterCardMinWidth + posterCardGap)));
+        return columns * posterRowsPerPage;
     }
 
     function restorePageScroll(page) {

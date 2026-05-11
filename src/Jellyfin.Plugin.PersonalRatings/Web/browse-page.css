@@ -62,6 +62,9 @@ body.personalRatingsBrowseRouteActive {
 .personalRatingsBrowseCommandBar,
 .personalRatingsBrowseFooterBar {
     gap: 10px;
+    box-sizing: border-box;
+    width: auto !important;
+    max-width: 100%;
 }
 
 .personalRatingsBrowseCommandBar {
@@ -349,6 +352,9 @@ body.personalRatingsBrowseRouteActive {
     gap: 12px;
     padding-bottom: 8px;
     flex-wrap: wrap;
+    box-sizing: border-box;
+    width: auto !important;
+    max-width: 100%;
 }
 
 .personalRatingsBrowseStatusText {
@@ -389,13 +395,19 @@ body.personalRatingsBrowseRouteActive {
 
 .personalRatingsBrowseResults {
     display: block !important;
-    width: 100%;
+    box-sizing: border-box;
+    width: auto !important;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .personalRatingsBrowseCards {
     display: grid;
     gap: 20px 16px;
+    box-sizing: border-box;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     align-items: start;
 }
